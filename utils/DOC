@@ -30,3 +30,6 @@ conn.ssl # 是否是SLL连接
 
 from collections import deque
 deque(maxlen=10) 定长列表 数组 双端队列 maxlen 决定长度 自动挤出去之前下标为0的数据
+
+# 选择KEY的 lambda ==================================================================
+from operator import itemgetter

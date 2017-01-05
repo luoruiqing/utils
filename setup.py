@@ -2,6 +2,9 @@
 from setuptools import setup, find_packages
 
 requirements = [
+    "requests",
+    "jieba",
+    "charset",
 ]
 setup(
     name="utils",
