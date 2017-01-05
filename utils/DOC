@@ -1,4 +1,4 @@
-
+# MYSQL ======================================================================
 cur.execute() # 执行mysql
 cur.fetchall() # 获得所有结果
 cur.fetchmany() # 获得条数结果  [cur.arraysize 是默认值]
@@ -25,3 +25,8 @@ conn.password # 数据库密码
 conn.server_status #服务器状态 1 正常
 conn.server_thread_id # 本次连接被分配的线程ID
 conn.ssl # 是否是SLL连接
+
+# 定长列表 双端队列 ==================================================================
+
+from collections import deque
+deque(maxlen=10) 定长列表 数组 双端队列 maxlen 决定长度 自动挤出去之前下标为0的数据
