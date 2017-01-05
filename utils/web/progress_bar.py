@@ -23,7 +23,7 @@ def get_filesize(length):
 
 class ProgressBar(object):
     formatter = r" %s [%-50s] %5.2f%% %6s/%s %s %s/s"
-    format_time = staticmethod(lambda s: strftime('%H:%M:%S', gmtime(s) if s <= 86400 else "more days"))
+    format_time = staticmethod(lambda s: (strftime('%H:%M:%S', gmtime(s)) if s <= 86400 else "more days"))
 
     def __init__(self, size, title='', fill_symbol="#", formatter=None):
         self.title = title  # 标题
@@ -44,10 +44,12 @@ class ProgressBar(object):
     def refresh(self, chunk):  # chunk可以是流内容 也可以是流大小 这个东西最好越小越好
         current = now() * 1000
         interval = float(current - self._last_time)
+
         if not isinstance(chunk, NumberType):
             chunk = len(chunk)
         self.loaded_length += chunk  # 累加已经下载量
-        self.millisecond_download_speed = chunk / interval  # 本次块大小/ 间隔时间 = 每毫秒下载速度
+
+        self.millisecond_download_speed = chunk / (interval or 1)  # 本次块大小/ 间隔时间 = 每毫秒下载速度
         self.second_download_speed = speed = self.millisecond_download_speed * 1000
 
         self.remaining_time = int((self.size - self.loaded_length) / speed)
@@ -57,14 +59,14 @@ class ProgressBar(object):
         self.loaded_percentage = (self.loaded_length / self.size)
         show_loaded_percentage = self.loaded_percentage * 100
         self.show_bar = self.fill_symbol * int(show_loaded_percentage * 0.5)
-
-        row = self.formatter % (
-            self.title,  # 文件名
-            self.show_bar, show_loaded_percentage,  # 下载进度条
-            get_filesize(self.loaded_length),
-            self.size_str,
-            self.format_time(self.remaining_time), get_filesize(speed))
-        stdout.write(row + "\r")  # + "\r"
+        if interval > 800:  # 每超过0.8秒刷新一次
+            row = self.formatter % (
+                self.title,  # 文件名
+                self.show_bar, show_loaded_percentage,  # 下载进度条
+                get_filesize(self.loaded_length),
+                self.size_str,
+                self.format_time(self.remaining_time), get_filesize(speed))
+            stdout.write(row + "\r")
         self._last_time = current
 
     @property
