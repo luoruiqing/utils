@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 requirements = [
     "requests",
     "jieba",
-    "charset",
+    "chardet",
 ]
 setup(
     name="utils",
