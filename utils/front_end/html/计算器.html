@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+    div1 {
+      width: 320px;
+      height: 571px;
+      background: #202020;
+    }
+
+    .shuchu {
+      width: 320px;
+      height: 169px;
+      background: #202020;
+      color: #fdfdfe;
+      font-size: 50px;
+    }
+
+    .anniu {uuuu
+      width: 318px;
+      height: 397px;
+      border: 1px solid #000000;
+    }
+
+    .first {
+      width: 320px;
+      height: 80px;
+      margin: 0px;
+      padding: 0px;
+    }
+
+    .first .li1 {
+      background: #f88e12;
+      color: #fdf9f3;
+    }
+
+    .first .ling {
+      width: 127px;
+      text-align: left;
+      padding-left: 30px;
+    }
+
+    .first li {
+      list-style: none;
+      float: left;
+      border: 1px solid #a3a4a5;
+      width: 77.5px;
+      height: 77.5px;
+      background: #c3c4c6;
+      text-align: center;
+      line-height: 78px;
+      font-size: 35px;
+    }
+  </style>
+  <meta charset="UTF-8">
+  <title>计算器</title>
+  <script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="css.css">
+</head>
+
+<body>
+<div class="div1">
+  <div class="shuchu" id="black" style="text-align:right; ">
+    <div id="show_number" style="padding-top: 105px;padding-right: 20px;">0</div>
+  </div>
+  <div class="anniu">
+    <div id="diyi">
+      <ul class="first">
+        <li id="ac">AC</li>
+        <li>±</li>
+        <li>％</li>
+        <li class="operator li1">÷</li>
+      </ul>
+    </div>
+    <div id="dier">
+      <ul class="first">
+        <li class="num">7</li>
+        <li class="num">8</li>
+        <li class="num">9</li>
+        <li class="li1 operator">x</li>
+      </ul>
+    </div>
+    <div id="disan">
+      <ul class="first">
+        <li class="num">4</li>
+        <li class="num">5</li>
+        <li class="num">6</li>
+        <li class="li1 operator">-</li>
+      </ul>
+    </div>
+    <div id="disi">
+      <ul class="first">
+        <li class="num">1</li>
+        <li class="num">2</li>
+        <li class="num">3</li>
+        <li class="li1 operator">+</li>
+      </ul>
+    </div>
+    <div id="diwu">
+      <ul class="first">
+        <li class="ling num">0</li>
+        <li class="num">.</li>
+        <li class="li1" id="calculations">=</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+  var left_number = '';// 左边的数字
+  var right_number = ''; // 右边的数字
+  var operator = undefined; // 运算符
+  var formula = '';// 整个等式的字符串
+
+  function show_number(num) {
+    // 显示的数字
+    $('#show_number').text(num)
+  }
+
+  $('#ac').click(function () {
+    left_number = '';
+    right_number = '';
+    operator = undefined;
+    formula = '';
+    show_number(0)
+  });
+
+  $('.num').click(function () {
+    var click_num = $(this).text(); //获得那个数字被点击了
+    var show_num = '0'; // 默认显示的数字
+    if (operator) { // 如果已经点击过了运算符号
+      // 假如点击了符号
+      right_number += click_num; // 让右侧的数字相连
+      show_num = right_number; //显示区域也显示右侧的数字
+      left_number = left_number ? left_number : '0'; // 如果左边的数字没被点击过 使用0作为左边的数字
+    } else { // 没点击过左边的数字
+      left_number += click_num; // 让左边的数字相连
+      show_num = left_number; // 显示的应该是左边的数字
+    }
+    show_number(show_num); // 显示输入的字符
+  });
+  $('.operator').click(function () {
+    operator = $(this).text(); // 获得运算符
+    operator = operator ? operator : undefined; // 容错 这个可以不管
+    operator = operator == 'x' ? '*' : operator; // 面板上的x其实对应是*
+    operator = operator == '÷' ? '/' : operator; // 面板上的÷其实对应是/
+  });
+
+  $("#calculations").click(function () {
+    var formula = left_number + ' ' + operator + ' ' + right_number; // 连成算式
+    left_number = eval(formula); // 运算算式 并且把运算结果当成左边的数字
+    show_number(left_number); // 显示结果
+    right_number = ''; // 清空右边的数字
+
+  })
+
+</script>
+</html>

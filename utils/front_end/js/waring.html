@@ -1,0 +1,715 @@
+<div id="myModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog"
+     aria-labelledby="mySmallModalLabel">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div style="float: right;" class="alert alert-warning" role="alert">
+        <a href="#" class="alert-link"></a>
+      </div>
+    </div>
+  </div>
+  <script>
+    function warning(content) {
+      var modal = $('#myModal');
+
+      if (content) {
+        modal.find("a").text(content);
+        modal.modal("show");
+      } else {
+        modal.modal("hide");
+      }
+    }
+  </script>
+</div>
+
+
+<script>
+  function getTable(title, fields, data) {
+    function getRow(fields) {
+      var head = "<tr>";
+      for (var i = 0; i < fields.length; i++) {
+        head += "<td>" + fields[i] + "</td>"
+      }
+      return head + "</tr>";
+    }
+
+    function unpack(object, fields) {
+      var result = [];
+      for (var i = 0; i < fields.length; i++)result.push(object[fields[i]])
+      return result
+    }
+
+    var head = getRow(title);
+    var body = "";
+    for (var i = 0; i < data.length; i++) {
+      body += getRow(unpack(data[i], fields))
+    }
+    return "<table><thead>" + head + "</thead><tbody>" + body + "</tbody></table>"
+  }
+
+
+  $(getTable(
+          ["公司名称", "旗下APP数量", "所有应用激活总量", "最近30天上新应用"], //head label
+          ["auth", "app_num", "app_downloads"], //object key
+          response.data //array
+  ));
+</script>
+<script>
+  function testNumber(obj) {
+    return /^((-|)\d+.\d+|(-|)\d+)$/.test(obj) ? true : false
+  }
+
+
+  function replaceClass(jqueryObject, oldClass, newClass) {
+    jqueryObject.removeClass(oldClass);
+    jqueryObject.addClass(newClass);
+
+  }
+  function newArrayCall(array, func) {
+    var result = [];
+    for (var i = 0; i < array.length; i++)result.push(func(array[i]))
+    return result
+  }
+  function unObject(object, fields) {
+    var result = [];
+    for (var i = 0; i < fields.length; i++)result.push(object[fields[i]])
+    return result
+  }
+  function unArray(array, field) {
+    var result = [];
+    for (var i = 0; i < array.length; i++)result.push(array[i][field])
+    return result
+  }
+
+  Date.prototype.toLocaleString = function () {
+    return this.getFullYear() + "年" + (this.getMonth() + 1) + "月" + this.getDate() + "日 ";
+    //+ this.getHours() + "点" + this.getMinutes() + "分" + this.getSeconds() + "秒";
+  };
+  function getLocalTime(nS) {
+    return new Date(parseInt(nS) * 1000).toLocaleString();
+  }
+
+</script>
+
+
+<script>
+
+  function TableBox(options) {
+    // Base
+    var labels = options.labels || options.fields;
+    var data = options.data;
+    // Utils
+    function getRow(fields, mark) {
+      var string = "<tr data-mark=" + mark + ">";
+      for (var i = 0; i < fields.length; i++)
+        string += "<td>" + fields[i] + "</td>"
+      return string + "</tr>";
+    }
+
+    function unObject(object, fields) {
+      var result = [];
+      for (var i = 0; i < fields.length; i++) result.push(object[fields[i]])
+      return result
+    }
+
+    function unArray(array, field) {
+      var result = [];
+      for (var i = 0; i < array.length; i++)result.push(array[i][field])
+      return result
+    }
+
+    function unArrayField(array, field_key, field_value, value_field) {
+      // [{"a":1,"b":2},{"a":3,"b":4}] unArrayField(data,"a","1","b")
+      var result = [];
+      for (var i = 0; i < array.length; i++) {
+        if (array[i][field_key] == field_value) {
+          result.push(array[i][value_field])
+        }
+      }
+      return result
+    }
+
+    function replaceClass(jqueryObject, oldClass, newClass) {
+      jqueryObject.removeClass(oldClass);
+      jqueryObject.addClass(newClass);
+    }
+
+    function testNumber(obj) {
+      return /^((-|)\d+.\d+|(-|)\d+)$/.test(obj) ? true : false
+    }
+
+    function compare(propertyName, sort_rule) {
+      return function (object1, object2) {
+        var value1, value2;
+        value1 = testNumber(object1[propertyName]) ? parseInt(object1[propertyName]) : object1[propertyName];
+        value2 = testNumber(object2[propertyName]) ? parseInt(object2[propertyName]) : object2[propertyName];
+        if (value2 < value1) return sort_rule[0];
+        else if (value2 > value1) return sort_rule[1];
+        return 0;
+      }
+    }
+
+    // DOM
+    var head = "<thead><tr>";
+    for (var i = 0; i < labels.length; i++) head += '<td data-field="' + options.fields[i] + '">' + labels[i] + '&nbsp;<span class="Table-sort-field glyphicon glyphicon-minus" aria-hidden="true"></span></td>'
+    head += "</tr></thead>";
+    var body = "<tbody>";
+    for (i = 0; i < data.length; i++) {
+      data[i]["mark"] = i;
+      body += getRow(unObject(data[i], options.fields), i)
+
+    }
+    body += "</tbody>";
+    var table = $("<table class='Table-sort-box'>" + head + body + "</table>");
+    if (options.callback) {
+      table = options.callback(table) || table;
+    }
+    // Table class
+    table.addClass(options.tableClass || "table table-bordered table-hover");
+    // Sort table
+    table.find(".Table-sort-field").click(function () {
+      // Style - arrow direction
+      var this_class = $(this).attr("class");
+      var tds = $(this).parent().parent().find("td");
+      var td, span;
+      for (i = 0; i < tds.length; i++) {
+        span = tds.eq(i).find("span");
+        replaceClass(span, "glyphicon-chevron-down", "glyphicon-minus");
+        replaceClass(span, "glyphicon-chevron-up", "glyphicon-minus");
+        span.css({"color": "#676a6c"})
+      }
+      $(this).css({"color": "#1AB394"});
+      // Sorting rule
+      var sort_rule = [-1, 1];
+      if (this_class.indexOf("glyphicon-chevron-down") > -1) {
+        replaceClass($(this), "glyphicon-chevron-down", "glyphicon-chevron-up");
+        sort_rule = [1, -1];
+      } else if (this_class.indexOf("glyphicon-chevron-up") > -1) {
+        replaceClass($(this), "glyphicon-chevron-up", "glyphicon-chevron-down");
+      } else {
+        replaceClass($(this), "glyphicon-minus", "glyphicon-chevron-down")
+      }
+      var sort_field = $(this).parent().data("field") || $(this).parent().text();
+      // Sort and copy data and unpack field mark.
+      var sorted_rule = unArray($.extend(true, [], data).sort(compare(sort_field, sort_rule)), "mark"); //排序
+      // Collect DOM append array.
+      var collect_dom_array = {};
+      table.find("tbody tr").each(function () {
+        collect_dom_array[$(this).data("mark")] = $(this).clone(true)
+      });
+      var table_body = table.find("tbody");
+      // Clearing DOM
+      table_body.empty();
+      // Writing table DOM.
+      for (i = 0; i < sorted_rule.length; i++) {
+        table_body.append(collect_dom_array[sorted_rule[i]])
+      }
+    });
+    return table
+  }
+
+
+  var data = [
+    {
+      "update_time": 1468395186,
+      "attr": "秀场",
+      "downloads": 579334,
+      "com_count": 651,
+      "label": "在直播",
+      "pack_name": "com.zbd",
+      "version": "4.1.0",
+      "crawl_time": 1468429628,
+      "base_id": 186735,
+      "auth": "快乐迭代（北京）网络科技有限公司",
+      "id": 3212755
+    },
+    {
+      "update_time": 1468323791,
+      "attr": "游戏",
+      "downloads": 3546137,
+      "com_count": 381,
+      "label": "熊猫TV",
+      "pack_name": "com.panda.videoliveplatform",
+      "version": "1.0.4.1311",
+      "crawl_time": 1468429650,
+      "base_id": 187080,
+      "auth": "上海熊猫互娱文化有限公司",
+      "id": 3214444
+    },
+    {
+      "update_time": 1468297225,
+      "attr": "秀场",
+      "downloads": 6806,
+      "com_count": 16,
+      "label": "乐嗨直播",
+      "pack_name": "com.letv.whatslive",
+      "version": "2.7.0",
+      "crawl_time": 1468430510,
+      "base_id": 191921,
+      "auth": "乐视网信息技术（北京）股份有限公司",
+      "id": 3275792
+    },
+    {
+      "update_time": 1468227563,
+      "attr": "游戏",
+      "downloads": 14408147,
+      "com_count": 14106,
+      "label": "虎牙直播",
+      "pack_name": "com.duowan.kiwi",
+      "version": "3.9.3",
+      "crawl_time": 1468429650,
+      "base_id": 281745,
+      "auth": "广州华多网络科技有限公司",
+      "id": 3214573
+    },
+    {
+      "update_time": 1467998348,
+      "attr": "秀场",
+      "downloads": 18514924,
+      "com_count": 989,
+      "label": "花椒直播-宋仲基台湾粉丝会直播",
+      "pack_name": "com.huajiao",
+      "version": "4.2.0.1025",
+      "crawl_time": 1468429591,
+      "base_id": 187077,
+      "auth": "北京密境和风科技有限公司",
+      "id": 3209543
+    },
+    {
+      "update_time": 1467979985,
+      "attr": "秀场",
+      "downloads": 193230,
+      "com_count": 584,
+      "label": "艾米直播",
+      "pack_name": "com.mobimtech.natives.ivp",
+      "version": "6.0.1",
+      "crawl_time": 1468429575,
+      "base_id": 286592,
+      "auth": "上海茂碧信息科技有限公司",
+      "id": 3208123
+    },
+    {
+      "update_time": 1467972028,
+      "attr": "秀场",
+      "downloads": 291857,
+      "com_count": 311,
+      "label": "压寨直播",
+      "pack_name": "com.yazhai.community",
+      "version": "3.3.0",
+      "crawl_time": 1468429575,
+      "base_id": 287345,
+      "auth": "深圳压寨网络有限公司",
+      "id": 3208286
+    },
+    {
+      "update_time": 1467968961,
+      "attr": "游戏",
+      "downloads": 3166147,
+      "com_count": 2698,
+      "label": "触手TV",
+      "pack_name": "com.kascend.chushou",
+      "version": "2.1.1.4733",
+      "crawl_time": 1468429591,
+      "base_id": 281570,
+      "auth": "坤舟信息技术（杭州）有限公司",
+      "id": 3209605
+    },
+    {
+      "update_time": 1467965530,
+      "attr": "秀场",
+      "downloads": 1720748,
+      "com_count": 453,
+      "label": "来疯直播",
+      "pack_name": "com.youku.crazytogether",
+      "version": "3.2.1",
+      "crawl_time": 1468429575,
+      "base_id": 286500,
+      "auth": "杭州来疯科技有限公司",
+      "id": 3208298
+    },
+    {
+      "update_time": 1467836824,
+      "attr": "秀场",
+      "downloads": 3471242,
+      "com_count": 877,
+      "label": "V明星直播",
+      "pack_name": "com.naver.vapp",
+      "version": "1.6.3",
+      "crawl_time": 1467911051,
+      "base_id": 186907,
+      "auth": "Naver Corp.",
+      "id": 1610549
+    },
+    {
+      "update_time": 1467815351,
+      "attr": "秀场",
+      "downloads": 2168845,
+      "com_count": 257,
+      "label": "蛙趣视频",
+      "pack_name": "com.waqu.android.general_video",
+      "version": "3.5.9",
+      "crawl_time": 1468429650,
+      "base_id": 188271,
+      "auth": "北京挖趣智慧科技有限公司",
+      "id": 3214599
+    },
+    {
+      "update_time": 1467808218,
+      "attr": "秀场",
+      "downloads": 1152519,
+      "com_count": 485,
+      "label": "九秀美女直播",
+      "pack_name": "com.ninexiu.sixninexiu",
+      "version": "3.2.9",
+      "crawl_time": 1468430478,
+      "base_id": 281753,
+      "auth": "玖秀互动（北京）文化传媒有限公司",
+      "id": 3274009
+    },
+    {
+      "update_time": 1467776390,
+      "attr": "秀场",
+      "downloads": 3135288,
+      "com_count": 519,
+      "label": "么么直播",
+      "pack_name": "com.memezhibo.android",
+      "version": "4.12.0",
+      "crawl_time": 1468429575,
+      "base_id": 286509,
+      "auth": "上海星艾网络科技有限公司",
+      "id": 3208313
+    },
+    {
+      "update_time": 1467720728,
+      "attr": "手游",
+      "downloads": 3061141,
+      "com_count": 89,
+      "label": "悟空TV",
+      "pack_name": "com.wukongtv.wukongtv",
+      "version": "1.1.6",
+      "crawl_time": 1468429591,
+      "base_id": 187380,
+      "auth": "上海聚流软件科技有限公司",
+      "id": 3209479
+    },
+    {
+      "update_time": 1467717622,
+      "attr": "秀场",
+      "downloads": 142500,
+      "com_count": 6272,
+      "label": "一直播",
+      "pack_name": "tv.xiaoka.live",
+      "version": "1.2.6",
+      "crawl_time": 1468429580,
+      "base_id": 187748,
+      "auth": "分享一下（北京）科技有限公司",
+      "id": 3208572
+    },
+    {
+      "update_time": 1467715899,
+      "attr": "游戏",
+      "downloads": 3921992,
+      "com_count": 4533,
+      "label": "战旗TV",
+      "pack_name": "com.gameabc.zhanqiAndroid",
+      "version": "2.7.1",
+      "crawl_time": 1468430478,
+      "base_id": 310670,
+      "auth": "杭州边锋网络技术有限公司",
+      "id": 3273990
+    },
+    {
+      "update_time": 1467704441,
+      "attr": "秀场",
+      "downloads": 101493079,
+      "com_count": 16697,
+      "label": "YY",
+      "pack_name": "com.duowan.mobile",
+      "version": "5.6.4",
+      "crawl_time": 1468429591,
+      "base_id": 187075,
+      "auth": "广州华多网络科技有限公司",
+      "id": 3209527
+    },
+    {
+      "update_time": 1467685387,
+      "attr": "秀场",
+      "downloads": 23313432,
+      "com_count": 27452,
+      "label": "云图TV手机电视直播",
+      "pack_name": "org.fungo.fungolive",
+      "version": "3.7.1",
+      "crawl_time": 1468429655,
+      "base_id": 281746,
+      "auth": "深圳新感易搜网络科技有限公司",
+      "id": 3215129
+    },
+    {
+      "update_time": 1467622748,
+      "attr": "游戏",
+      "downloads": 11159734,
+      "com_count": 5152,
+      "label": "斗鱼",
+      "pack_name": "air.tv.douyu.android",
+      "version": "2.2.7",
+      "crawl_time": 1468429655,
+      "base_id": 186788,
+      "auth": "武汉斗鱼网络科技有限公司",
+      "id": 3215113
+    },
+    {
+      "update_time": 1467420546,
+      "attr": "秀场",
+      "downloads": 34037188,
+      "com_count": 21502,
+      "label": "风云直播",
+      "pack_name": "air.fyzb3",
+      "version": "6.6.5",
+      "crawl_time": 1467911051,
+      "base_id": 281797,
+      "auth": "乐视体育文化产业发展（北京）有限公司",
+      "id": 1610442
+    },
+    {
+      "update_time": 1467306405,
+      "attr": "秀场",
+      "downloads": 50173,
+      "com_count": 5,
+      "label": "NOW",
+      "pack_name": "com.tencent.now",
+      "version": "1.2.0.25",
+      "crawl_time": 1468429587,
+      "base_id": 286486,
+      "auth": "腾讯科技（北京）有限公司",
+      "id": 3209284
+    },
+    {
+      "update_time": 1467294003,
+      "attr": "秀场",
+      "downloads": 805852,
+      "com_count": 208,
+      "label": "9513直播",
+      "pack_name": "com.impression.a9513.client",
+      "version": "2.0.8",
+      "crawl_time": 1468429586,
+      "base_id": 287334,
+      "auth": "浙江印象软件有限公司",
+      "id": 3209175
+    },
+    {
+      "update_time": 1467268823,
+      "attr": "游戏",
+      "downloads": 1572340,
+      "com_count": 859,
+      "label": "龙珠直播",
+      "pack_name": "com.longzhu.tga",
+      "version": "3.5.1",
+      "crawl_time": 1468429655,
+      "base_id": 186935,
+      "auth": "苏州游视网络科技有限公司",
+      "id": 3215073
+    },
+    {
+      "update_time": 1466767818,
+      "attr": "秀场",
+      "downloads": 13587,
+      "com_count": 0,
+      "label": "凤凰美女直播",
+      "pack_name": "com.ysfh.hbgq",
+      "version": "2.1.6",
+      "crawl_time": 1468429614,
+      "base_id": 289919,
+      "auth": "上海掌润软件有限公司",
+      "id": 3211533
+    },
+    {
+      "update_time": 1466767337,
+      "attr": "秀场",
+      "downloads": 3748234,
+      "com_count": 39823,
+      "label": "KK",
+      "pack_name": "com.melot.meshow",
+      "version": "5.1.0",
+      "crawl_time": 1468429582,
+      "base_id": 287221,
+      "auth": "杭州时信网络传播有限公司",
+      "id": 3208960
+    },
+    {
+      "update_time": 1466760618,
+      "attr": "秀场",
+      "downloads": 544,
+      "com_count": 1,
+      "label": "丫丫直播",
+      "pack_name": "com.jj.mitao2",
+      "version": "2.1.6",
+      "crawl_time": 1468429609,
+      "base_id": 288428,
+      "auth": "广州市品玩信息技术有限公司",
+      "id": 3211132
+    },
+    {
+      "update_time": 1466760019,
+      "attr": "秀场",
+      "downloads": 2452782,
+      "com_count": 2185,
+      "label": "ME直播",
+      "pack_name": "com.yy.ourtimes",
+      "version": "2.1.2",
+      "crawl_time": 1468429591,
+      "base_id": 286589,
+      "auth": "广州欢聚时代信息科技有限公司",
+      "id": 3209558
+    },
+    {
+      "update_time": 1466742018,
+      "attr": "秀场",
+      "downloads": 53337,
+      "com_count": 6,
+      "label": "花样直播",
+      "pack_name": "com.tencent.huayang",
+      "version": "1.5.1.37",
+      "crawl_time": 1468429582,
+      "base_id": 286551,
+      "auth": "腾讯科技（北京）有限公司",
+      "id": 3208887
+    },
+    {
+      "update_time": 1466670980,
+      "attr": "秀场",
+      "downloads": 489569,
+      "com_count": 36,
+      "label": "CC直播",
+      "pack_name": "com.netease.cc",
+      "version": "2.0.1",
+      "crawl_time": 1468429575,
+      "base_id": 287372,
+      "auth": "广州网易计算机系统有限公司",
+      "id": 3208332
+    },
+    {
+      "update_time": 1466662210,
+      "attr": "秀场",
+      "downloads": 1564258,
+      "com_count": 800,
+      "label": "六间房秀场",
+      "pack_name": "cn.v6.sixrooms",
+      "version": "4.0.2",
+      "crawl_time": 1468430500,
+      "base_id": 188125,
+      "auth": "北京六间房科技有限公司",
+      "id": 3275399
+    },
+    {
+      "update_time": 1466421616,
+      "attr": "秀场",
+      "downloads": 779534,
+      "com_count": 1030,
+      "label": "天天直播",
+      "pack_name": "tv.tiantian.zhibo",
+      "version": "2.1.0620",
+      "crawl_time": 1468430492,
+      "base_id": 281737,
+      "auth": "苏州宝昀通检测设备有限公司",
+      "id": 3274667
+    },
+    {
+      "update_time": 1466248066,
+      "attr": "秀场",
+      "downloads": 599422,
+      "com_count": 280,
+      "label": "全民TV",
+      "pack_name": "com.maimiao.live.tv",
+      "version": "2.0.1",
+      "crawl_time": 1468430500,
+      "base_id": 187083,
+      "auth": "上海脉淼信息科技有限公司",
+      "id": 3275436
+    },
+    {
+      "update_time": 1466071911,
+      "attr": "秀场",
+      "downloads": 2081862,
+      "com_count": 813,
+      "label": "繁星直播",
+      "pack_name": "com.kugou.fanxing",
+      "version": "2.9.8.2",
+      "crawl_time": 1468430526,
+      "base_id": 188264,
+      "auth": "广州酷狗计算机科技有限公司",
+      "id": 3276197
+    },
+    {
+      "update_time": 1465787887,
+      "attr": "秀场",
+      "downloads": 959847,
+      "com_count": 56,
+      "label": "唱吧直播间",
+      "pack_name": "com.changba.live",
+      "version": "1.8.1",
+      "crawl_time": 1468430494,
+      "base_id": 187471,
+      "auth": "北京酷智科技有限公司",
+      "id": 3274917
+    },
+    {
+      "update_time": 1464924847,
+      "attr": "秀场",
+      "downloads": 2315123,
+      "com_count": 1079,
+      "label": "新浪唱聊美女视频",
+      "pack_name": "com.sina.show",
+      "version": "3.3.805",
+      "crawl_time": 1468429575,
+      "base_id": 286605,
+      "auth": "金华星秀文化传播有限公司",
+      "id": 3208179
+    },
+    {
+      "update_time": 1451297419,
+      "attr": "秀场",
+      "downloads": 3589,
+      "com_count": 4,
+      "label": "快看直播",
+      "pack_name": "com.yy.wewatch",
+      "version": "1.6.8",
+      "crawl_time": 1468430501,
+      "base_id": 202883,
+      "auth": "广州华多网络科技有限公司",
+      "id": 3275569
+    },
+    {
+      "update_time": 1447928529,
+      "attr": "秀场",
+      "downloads": 0,
+      "com_count": 0,
+      "label": "么么直播",
+      "pack_name": "com.memezhibo.android",
+      "version": "3.8.0",
+      "crawl_time": 1467865906,
+      "base_id": 286510,
+      "auth": "上海星艾网络科技有限公司",
+      "id": 1311108
+    },
+    {
+      "update_time": 1402737306,
+      "attr": "秀场",
+      "downloads": 10669,
+      "com_count": 1,
+      "label": "直播吧",
+      "pack_name": "com.zhibo008.aikantiyu",
+      "version": "1.5",
+      "crawl_time": 1468430232,
+      "base_id": 211266,
+      "auth": "zhibo008.com",
+      "id": 3260397
+    }
+  ];
+  var options = {
+    labels: undefined,//ID	APP名称	分类	公司名称	关键字	包名	激活数	最后更新时间	评论数	版本
+    fields: ['id', 'auth', 'base_id', 'crawl_time', 'version', 'pack_name', 'label', 'com_count', 'downloads', 'attr', 'update_time'],
+    data: data
+  };
+  $("#show-all-apps-box").append(TableBox(options));
+
+
+</script>
