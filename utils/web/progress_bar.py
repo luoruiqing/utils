@@ -1,11 +1,24 @@
 # coding:utf-8
 from sys import stdout
-from common import format
 from collections import deque
 from time import strftime, gmtime, time as now
 from types import IntType, LongType, FloatType
 
 NumberType = (IntType, LongType, FloatType)
+
+Byte = 1  # 1B
+Kilobyte = 1024 * Byte  # 1KB
+Megabyte = 1024 * Kilobyte  # 1MB
+Gigabyte = 1024 * Megabyte  # 1GB
+Terabyte = 1024 * Gigabyte  # 1TB
+
+DISK_CAPACITY_MAP = [(Byte, "B"), (Kilobyte, "KB"), (Megabyte, "MB"), (Gigabyte, "GB"), (Terabyte, "TB")]
+
+
+def get_filesize(length):
+    """ 根据文件长度获得标准写法 """
+    company_tuple = filter(lambda (a, _): length >= a, DISK_CAPACITY_MAP)[-1]
+    return "%.2f%s" % (length / (company_tuple[0] or 1), company_tuple[1])
 
 
 class ProgressBar(object):
@@ -15,7 +28,7 @@ class ProgressBar(object):
     def __init__(self, size, title='', fill_symbol="#", formatter=None):
         self.title = title  # 标题
         self.size = float(abs(size))  # 内容长度
-        self.size_str = format(self.size)  # 最大长度字符
+        self.size_str = get_filesize(self.size)  # 最大长度字符
         self.fill_symbol = fill_symbol  # 进度符号
         self.loaded_length = float()  # 已经加载的长度
         self.remaining_time = None  # 剩余时间
@@ -48,9 +61,9 @@ class ProgressBar(object):
         row = self.formatter % (
             self.title,  # 文件名
             self.show_bar, show_loaded_percentage,  # 下载进度条
-            format(self.loaded_length),
+            get_filesize(self.loaded_length),
             self.size_str,
-            self.format_time(self.remaining_time), format(speed))
+            self.format_time(self.remaining_time), get_filesize(speed))
         stdout.write(row + "\r")  # + "\r"
         self._last_time = current
 
@@ -61,7 +74,7 @@ class ProgressBar(object):
 
     @property
     def avestr(self):  # 平均速度字符串
-        return format(self.ave)
+        return get_filesize(self.ave)
 
     @property
     def consumed(self):  # 已经耗时
