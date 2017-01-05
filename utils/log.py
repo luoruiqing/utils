@@ -38,9 +38,9 @@ def get_mongodb_logger(collection, db="log", host='localhost', port=None,
 
 
 if __name__ == '__main__':
-    # logger = get_mongodb_logger('appinfo')
-    # logger.info("debug message111111111111111111111111111111111111")
+    # logger = get_mongodb_logger('db_test')
+    # logger.info("Hello word!")
     logger = getLogger()
     logger.setLevel(DEBUG)
-    logger.info("111111111111111111")
+    logger.info("Hello word!")
     logger.info(range(5))
