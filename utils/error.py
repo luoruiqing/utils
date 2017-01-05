@@ -1,4 +1,13 @@
 # coding:utf-8
+from sys import exc_info
+from traceback import extract_tb
+
+
+def get_error_info():
+    """ 获得错误信息 返回的信息依次为 错误类型，错误原因，错误文件路径，错误文件行号，错误方法名称，错误行的代码内容 """
+    exc_type, exc_reason, exc_tb = exc_info()
+    file_path, line, func_name, err_line_content = extract_tb(exc_tb)[-1]
+    return exc_type, exc_reason, file_path, line, func_name, err_line_content
 
 
 class Error(Exception):
