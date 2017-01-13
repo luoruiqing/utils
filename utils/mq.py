@@ -65,19 +65,20 @@ class MessageQueueManager(ClosingContextManager):
     # exchange_declare(exchange_type='direct') 指定路由类型
 
     def __init__(self, host, username, password, virtual_host="/", routing_key=None,
-                 exchange=None, queue=None, port=5672, temporary=False, interval=5):
+                 exchange=None, queue=None, port=5672, arguments=None, temporary=False, interval=5):
         self.host = host  # 主机
         self.port = int(port)  # 端口
         self.username = username  # 用户名
         self.password = password  # 密码
         self.routing_key = routing_key  # key
-        self.exchange = exchange  # 路由
-        self.queue = queue  # 队列
+        self.exchange_name = exchange  # 路由
+        self.queue_name = queue  # 队列
         self.virtual_host = virtual_host
-        self._default_channel = None
-        self.interval = interval
-        self.connect()  # 第一次进入便是死循环
+        self.arguments = arguments  # 队列是键值对形式的参数
+        self.interval = interval # 重试间隔时间
         self.temporary = temporary  # 临时队列 偶尔会保留队列，但是过一段时间mq会自行删除
+        self.surplus = None  # 剩余的个数
+        self.connect()  # 第一次进入便是死循环
 
     def get(self):
         # no_ack 为 True 拉取消息后服务端直接删除不需要确认
@@ -91,7 +92,7 @@ class MessageQueueManager(ClosingContextManager):
         logger.debug("Sending message %s..." % message)
         for retry in range(1, 4):
             try:
-                self.channel.basic_publish(exchange=self.exchange, routing_key=self.routing_key, body=message)
+                self.channel.basic_publish(exchange=self.exchange_name, routing_key=self.routing_key, body=message)
             except Exception, e:
                 logger.error(str(e))
                 sleep(self.interval)
@@ -117,14 +118,15 @@ class MessageQueueManager(ClosingContextManager):
     def close(self):
         if self.temporary:  # 临时队列 删除
             # self.channel.queue_delete(self.queue)
-            self.channel.exchange_delete(self.exchange)  # 必须删除路由
+            self.channel.exchange_delete(self.exchange_name)  # 必须删除路由
         self.conn.close()
 
     def _get(self, no_ack):
         # no_ack 为 True 拉取消息后服务端直接删除不需要确认
         logger.debug("Getting message...")
         while True:
-            method_sig, properties, body = self.channel.basic_get(queue=self.queue, no_ack=no_ack)
+            method_sig, properties, body = self.channel.basic_get(queue=self.queue_name, no_ack=no_ack)
+            self.surplus = method_sig.message_count
             if body:
                 return method_sig, properties, body
             else:
@@ -136,26 +138,30 @@ class MessageQueueManager(ClosingContextManager):
         if not hasattr(self, "_channel"):
             self._channel = channel = self.conn.channel()  # 建立通道
             if self.temporary:  # 是否使用临时队列
-                self.queue = channel.queue_declare(exclusive=True).method.queue  # 声明临时队列 获得名称
-                self.exchange = "temporary." + get_uid().replace("-", "")  # 随机的路由名称
+                self.queue = channel.queue_declare(exclusive=True, arguments=self.arguments)  # 声明临时队列
+                self.queue_name = self.queue.method.queue  # 获得名称
+                self.exchange_name = "temporary." + get_uid().replace("-", "")  # 随机的路由名称
                 self.routing_key = get_uid().split("-", 1)[0]  # 随机的key
 
                 e = None
                 try:  # 路由不存在
-                    channel.exchange_declare(self.exchange, passive=True)  # 临时队列
+                    self.exchange = channel.exchange_declare(self.exchange_name, passive=True)  # 临时队列
                 except ChannelClosed as e:
-                    logger.warning("Exchange '%s' not existent." % self.exchange)
+                    logger.warning("Exchange '%s' not existent." % self.exchange_name)
                 finally:
                     if e:
                         self._channel = channel = self.conn.channel(
                             channel_number=self._channel.channel_number)  # 重新开启刚刚的编号
-                        logger.warning("Create exchange '%s'..." % self.exchange)
-                        channel.exchange_declare(self.exchange, durable=False, auto_delete=True)  # 临时队列
+                        logger.warning("Create exchange '%s'..." % self.exchange_name)
+                        self.exchange = channel.exchange_declare(
+                            self.exchange_name, durable=False, auto_delete=True)  # 临时队列
             else:
-                channel.queue_declare(queue=self.queue, durable=True)
-                channel.exchange_declare(exchange=self.exchange, durable=True)
+                self.queue = channel.queue_declare(queue=self.queue_name, durable=True, arguments=self.arguments)
+                self.exchange = channel.exchange_declare(exchange=self.exchange, durable=True)
             # 绑定
-            channel.queue_bind(exchange=self.exchange, routing_key=self.routing_key, queue=self.queue)
+            self.bind = channel.queue_bind(exchange=self.exchange_name, routing_key=self.routing_key,
+                                           queue=self.queue_name)
+
         return self._channel
 
 
