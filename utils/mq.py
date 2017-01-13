@@ -2,7 +2,6 @@
 
 from uuid import uuid4
 from time import sleep
-from random import sample
 from traceback import format_exc
 from logging import getLogger, DEBUG
 from abc import ABCMeta, abstractmethod
@@ -14,10 +13,6 @@ logger.setLevel(DEBUG)
 
 # getLogger('pika').setLevel(INFO)
 get_uid = lambda: str(uuid4())
-
-
-class MQError(Exception):
-    pass
 
 
 class ClosingContextManager(object):
@@ -34,28 +29,27 @@ class ClosingContextManager(object):
         self.close()
 
 
-def random_string(limit=16, base=(
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ".",
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-        'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z')):
-    return "".join(sample(base, limit))
-
-
 class Message(str):
     def __new__(cls, string, *args, **kwargs):
         return str.__new__(cls, string)
 
     def __init__(self, string, channel, method_sig):
+        """字符 管道 这条消息的信号"""
+        self.string = string
         self.channel = channel
         self.method_sig = method_sig
+        self.acked = False
 
-    def ack(self):
-        logger.info("acknowledgement message %s" % self)
+    def acknowledgement(self):
+        logger.debug("Acknowledgement message: %s." % self)
         self.channel.basic_ack(self.method_sig.delivery_tag)
+        self.acked = True
 
-    acknowledgement = ack
+    def __del__(self):
+        if not self.acked:
+            logger.debug("Not acknowledgement message: %s." % self.string)
+
+    ack = acknowledgement
 
 
 class MessageQueueManager(ClosingContextManager):
@@ -89,24 +83,23 @@ class MessageQueueManager(ClosingContextManager):
         # no_ack 为 True 拉取消息后服务端直接删除不需要确认
         return self._get(no_ack=True)[2]
 
-    def _get(self, no_ack):
-        # no_ack 为 True 拉取消息后服务端直接删除不需要确认
-        logger.debug("Getting message...")
-        while True:
-            method_sig, properties, body = self.channel.basic_get(queue=self.queue, no_ack=no_ack)
-            if not body:
-                logger.debug("Queue is empty. sleep 5s.")
-                sleep(self.interval)
-            return method_sig, properties, body
-
     def get_message(self):
         method_sig, _, body = self._get(no_ack=False)  # properties
         return Message(body, self.channel, method_sig)
 
     def send(self, message):
         logger.debug("Sending message %s..." % message)
-        while True:
-            return self.channel.basic_publish(exchange=self.exchange, routing_key=self.routing_key, body=message)
+        for retry in range(1, 4):
+            try:
+                self.channel.basic_publish(exchange=self.exchange, routing_key=self.routing_key, body=message)
+            except Exception, e:
+                logger.error(str(e))
+                sleep(self.interval)
+            else:
+                return True
+            finally:
+                if retry >= 3:
+                    raise e
 
     def connect(self, timeout=10, interval=5):
         while True:
@@ -117,7 +110,7 @@ class MessageQueueManager(ClosingContextManager):
                     socket_timeout=timeout,
                 ))
                 break
-            except:
+            except Exception:
                 logger.error(format_exc())
                 sleep(interval)
 
@@ -126,6 +119,17 @@ class MessageQueueManager(ClosingContextManager):
             # self.channel.queue_delete(self.queue)
             self.channel.exchange_delete(self.exchange)  # 必须删除路由
         self.conn.close()
+
+    def _get(self, no_ack):
+        # no_ack 为 True 拉取消息后服务端直接删除不需要确认
+        logger.debug("Getting message...")
+        while True:
+            method_sig, properties, body = self.channel.basic_get(queue=self.queue, no_ack=no_ack)
+            if body:
+                return method_sig, properties, body
+            else:
+                logger.debug("Queue is empty. sleep 5s.")
+                sleep(self.interval)
 
     @property
     def channel(self):
@@ -175,4 +179,4 @@ def send_one_msg(host, username, password, exchange, routing_key=None, msg=None,
 MQ = MessageQueueManager
 
 if __name__ == '__main__':
-    from logging import basicConfig
+    pass
