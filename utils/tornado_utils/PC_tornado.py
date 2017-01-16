@@ -2,7 +2,6 @@
 """
     生产消费者模式的tornado定时任务
 """
-from time import time as now
 from tornado.queues import Queue
 from tornado.gen import coroutine
 from abc import ABCMeta, abstractmethod
