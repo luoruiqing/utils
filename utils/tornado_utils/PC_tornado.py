@@ -22,7 +22,6 @@ class ProductionAndConsumptionTornado(object):
         self.queue = Queue(maxsize=self.queue_maxsize)
         self.io_loop = io_loop or IOLoop.current()
         self.production_interval = production_interval
-        self.consumption_start_time = None
 
     @abstractmethod
     def producer(self):  # 子类实现
@@ -34,7 +33,6 @@ class ProductionAndConsumptionTornado(object):
 
     @coroutine
     def _consumer(self):
-        self.consumption_start_time = now()
         while True:
             item = yield self.queue.get()
             try:
