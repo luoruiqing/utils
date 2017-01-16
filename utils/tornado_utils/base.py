@@ -5,6 +5,11 @@ from tornado.gen import coroutine, Return
 from tornado.ioloop import IOLoop, PeriodicCallback
 
 
+def check_tornado_async(func):
+    """检查是不是tornado异步方法"""
+    return "TracebackFuture" in func.func_code.co_names
+
+
 def tornado_run(function, *args, **kwargs):
     """ 异步执行一个方法 """
     tornado_timeout = kwargs.pop("tornado_timeout", None)
@@ -83,9 +88,6 @@ def tornado_api_dome():
             raise ValueError("No data.")
 
     tornado_run(post, self=type('', tuple(), {"write": print}), _print=False)
-
-
-
 
 
 def tornado_static_dome():
