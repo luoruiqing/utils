@@ -2,16 +2,11 @@
 """
     生产消费者模式的tornado定时任务
 """
+from time import time as now
 from tornado.queues import Queue
 from tornado.gen import coroutine
-from logging import getLogger, DEBUG
-from time import strftime, localtime, time as now
-from tornado.ioloop import IOLoop, PeriodicCallback
-
-logger = getLogger()
-logger.setLevel(DEBUG)
-
 from abc import ABCMeta, abstractmethod
+from tornado.ioloop import IOLoop, PeriodicCallback
 
 
 class ProductionAndConsumptionTornado(object):
@@ -40,7 +35,6 @@ class ProductionAndConsumptionTornado(object):
     @coroutine
     def _consumer(self):
         self.consumption_start_time = now()
-        logger.debug("%s start consume.", strftime("%Y-%m-%d %H:%M:%S", localtime(self.consumption_start_time)))
         while True:
             item = yield self.queue.get()
             try:
