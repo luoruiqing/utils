@@ -16,6 +16,15 @@ NumberType = (IntType, LongType, FloatType)
 flat = lambda l: sum(map(flat, l), []) if isinstance(l, list) else [l]
 
 
+def get_move_duplicate_list(listing, copy=True):
+    """ 有序set 列表去重后保持有序 """
+    new_list = list(set(listing))
+    result = sorted(new_list, key=listing.index)
+    if copy:
+        return result
+    listing[:] = result
+    return listing
+
 def check_is_admin(f):
     """ 关于位置参数的问题  例如：username是一个位置参数
     在装饰器 或者全部传参数时候 通过 from inspect import getcallargs 获得真实的参数
