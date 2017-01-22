@@ -109,9 +109,12 @@ def replace_time(datetime=None, year=None, month=None, day=None,
     return mktime(datetime_obj.replace(**kwargs).timetuple())
 
 
+WEEK_CN = {1: "一", 2: "二", 3: "三", 4: "四", 5: "五", 6: "六", 7: "日"}
+
+
 def get_week(*args, **kwargs):
     """ 获得当前或指定日期的星期数 """
-    return datetime_object(*args, **kwargs).strftime("%w")
+    return int(datetime_object(*args, **kwargs).strftime("%w"))
 
 
 def convert_second(second):
