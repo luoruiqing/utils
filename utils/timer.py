@@ -123,15 +123,12 @@ def convert_second(second):
     :param second: 秒数
     :return: 小于1天时返回根据秒数获得的时分秒
     """
-    _second = float(abs(second))
-    hour, minute, second = 0, 0, 0
-    minute = _second / MINUTE
-    if minute >= 60:
-        hour = minute / 60
-        minute = minute % 60
-    if hour >= 24:
-        return "more days"
-    hour, minute, second = map(int, [hour, minute, _second % MINUTE])
+    _second = int(abs(second))
+    minute, second = divmod(_second, 60)
+    hour, minute = divmod(minute, 60)
+    day, hour = divmod(hour, 24)
+    if day:
+        return "more than %s days" % day
     return "%s%02d:%02d" % ("%02d:" % hour if hour > 0 else "", minute, second)
 
 
@@ -142,11 +139,11 @@ def get_utc_time(timestamp):
 
 del get_utc_time
 if __name__ == '__main__':
-    print "我要获得3月份的时间戳", format_time(get_timestamp("3月份"))
-    print "我要获得向前偏移1星期的日期", format_time(offset_time(weeks=-1))
-    print "向前偏移1天", format_time(offset_time(day=-1))
-    print "我要本月3号的日志", format_time(replace_time(day=3))
-    print "我要获得当前是周几", get_week()
-    print "我要获得本月3号是周几", get_week(replace_time(day=3))
-    print '"我昨天看电影了",昨天几号?', format_time(get_timestamp("我昨天看电影了"))
-    print "下载剩余%s" % convert_second(3799)
+    # print "我要获得3月份的时间戳", format_time(get_timestamp("3月份"))
+    # print "我要获得向前偏移1星期的日期", format_time(offset_time(weeks=-1))
+    # print "向前偏移1天", format_time(offset_time(day=-1))
+    # print "我要本月3号的日志", format_time(replace_time(day=3))
+    # print "我要获得当前是周几", get_week()
+    # print "我要获得本月3号是周几", get_week(replace_time(day=3))
+    # print '"我昨天看电影了",昨天几号?', format_time(get_timestamp("我昨天看电影了"))
+    print "下载剩余%s" % convert_second(3600 * 21 + 3765)
