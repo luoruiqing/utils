@@ -109,7 +109,8 @@ def replace_time(datetime=None, year=None, month=None, day=None,
     return mktime(datetime_obj.replace(**kwargs).timetuple())
 
 
-WEEK_CN = {1: "一", 2: "二", 3: "三", 4: "四", 5: "五", 6: "六", 7: "日"}
+WEEK_NUMBER_CN = {1: "一", 2: "二", 3: "三", 4: "四", 5: "五", 6: "六", 7: "日"}
+WEEK_CN_NUMBER = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "日": 7}
 
 
 def get_week(*args, **kwargs):
