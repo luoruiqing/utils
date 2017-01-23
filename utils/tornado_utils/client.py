@@ -1,4 +1,5 @@
 # coding:utf-8
+from copy import copy
 from types import DictType
 from urllib import urlencode
 from logging import getLogger, DEBUG
@@ -41,7 +42,7 @@ class Client:
     @coroutine
     def request(self, *args, **kwargs):
         """重试的时候需要用同步的方式 检测599的http code 这种状态代表为等待中"""
-        _args, _kwargs = args, kwargs  # 默认参数
+        _args, _kwargs = map(copy, args, kwargs)  # 默认参数
         args = list(args)
         url = kwargs.pop("url", args.pop(0))
         headers = self.DEFAULT_HEADERS.copy()
