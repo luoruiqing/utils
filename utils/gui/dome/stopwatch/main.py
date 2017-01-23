@@ -8,7 +8,7 @@ from kivy.utils import get_color_from_hex
 from kivy.properties import ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.resources import resource_find
-from utils.timer import get_week, WEEK_CN
+from utils.timer import get_week, WEEK_CN_NUMBER
 
 print resource_find('Roboto-Regular.ttf')  # 查找文件
 
