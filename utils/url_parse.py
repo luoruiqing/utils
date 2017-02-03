@@ -19,7 +19,7 @@ def quotes(items):
     return map(lambda item: quote(str(item)), items)
 
 
-class UrlParse():
+class UrlParse:
     """
     解析url 获得一些url相关的信息
     这里不会管key重复的情况
