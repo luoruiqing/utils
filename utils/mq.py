@@ -57,7 +57,7 @@ class MessageQueueManager(ClosingContextManager):
     为了更加灵活的配置和管理MQ队列 在rabbitMQ中 <键,路由,队列> 三点一线
      3个条件决定一个队列
      这个类在任何条件不满足时 直接创建相应的 <键,路由,队列> 否则在已经正常存取
-     如果定义了零时属性 temporary 则会删除队列
+     如果定义了临时属性 temporary 则会删除队列
     """
 
     # durable 持久是是否写硬盘 如果宕机 持久队列可以恢复 非持久不可恢复

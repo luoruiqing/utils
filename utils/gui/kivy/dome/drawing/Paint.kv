@@ -1,0 +1,108 @@
+#:import C kivy.utils.get_color_from_hex
+# 上面的是kv文件的导包
+
+<ColorButton@RadioButton>:
+    group: 'color'
+    on_release: app.canvas_widget.set_color(self.background_color)
+    background_normal: 'color_button_normal.png'
+    background_down: 'color_button_down.png'
+    border: (3, 3, 3, 3)
+
+<LineWidthButton@ColorButton>:
+    group: 'line_width'
+    #on_release: app.canvas_widget.set_line_width(self.text)
+    color: C('#2C3E50')
+    background_color: C('#ECF0F1')
+
+
+
+
+# * ROOT *
+<CanvasWidget>: # 默认画布
+    orientation: 'vertical'
+    padding: 3 # 内边距
+    spacing: 3 # 间距
+    top: root.top
+    width: root.width # 窗口内部的宽度
+    height: 40 # 高度为40
+
+    Button:
+        text: '清除' # 内容是delete
+        right: root.right # 右对齐
+        top: root.top # 上对齐
+        width: 80 # 宽度
+        height: 40 # 高度
+        on_release: root.clear_canvas() # 点击后触发的函数
+        background_color: C('#FF1818')
+        font_name: 'msyh/msyhbd.ttc'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 2
+        spacing: 2
+        x: 0
+        top: root.top
+        width: 80
+        height: 110
+
+        LineWidthButton:
+            text: 'Thin'
+
+        LineWidthButton:
+            text: 'Normal'
+            state: 'down'
+
+        LineWidthButton:
+            text: 'Thick'
+
+
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 3 # 内边距
+        spacing: 3 # 间距
+        x: 0 # 位置
+        y: 0 # 位置
+        width: root.width # 窗口内部的宽度
+        height: 40 # 高度为40
+
+        ColorButton:
+            background_color: C('#1ABC9C')
+        ColorButton:
+            background_color: C('#16A085')
+        ColorButton:
+            background_color: C('#2ECC71')
+        ColorButton:
+            background_color: C('#27AE60')
+        ColorButton:
+            background_color: C('#3498DB')
+        ColorButton:
+            background_color: C('#2980B9')
+        ColorButton:
+            background_color: C('#9B59B6')
+        ColorButton:
+            background_color: C('#8E44AD')
+        ColorButton:
+            background_color: C('#34495E')
+        ColorButton:
+            background_color: C('#2C3E50')
+        ColorButton:
+            background_color: C('#F1C40F')
+        ColorButton:
+            background_color: C('#F39C12')
+        ColorButton:
+            background_color: C('#E67E22')
+        ColorButton:
+            background_color: C('#D35400')
+        ColorButton:
+            background_color: C('#E74C3C')
+        ColorButton:
+            background_color: C('#C0392B')
+        ColorButton:
+            background_color: C('#ECF0F1')
+        ColorButton:
+            background_color: C('#BDC3C7')
+        ColorButton:
+            background_color: C('#95A5A6')
+        ColorButton:
+            background_color: C('#7F8C8D')
