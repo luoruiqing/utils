@@ -18,12 +18,38 @@
 | 虽然中间遭遇了 continue 依然可以执行                                              |
 | 但如果是break结束 则不执行                                                       |
 --------------------------------------------------------------------------------
+
+# 商和余数同时得到 divmod()
+
+--------------------------------------------------------------------------------
+|                             双端队列                                          |
+--------------------------------------------------------------------------------
+|a = 0                                                                         |
+|while a < 10:                                                                 |
+|    print a                                                                   |
+|    a += 1                                                                    |
+|    if a > 5:                                                                 |
+|        continue                                                              |
+|    if a > 9:                                                                 |
+|        break                                                                 |
+|else:                                                                         |
+|    print "ok."                                                               |
+|                                                                              |
+| while中的else这段代码 如果循环是正常结束 则执行else内的方法                          |
+| 虽然中间遭遇了 continue 依然可以执行                                              |
+| 但如果是break结束 则不执行                                                       |
+
+
 # 定长列表 双端队列 ==================================================================
 from collections import deque
 deque(maxlen=10) 定长列表 数组 双端队列 maxlen 决定长度 自动挤出去之前下标为0的数据
 
 
 # 键盘中断错误 KeyboardInterrupt ============================================================
+
+# 剥离扩展名 from os.path import splitext
+
+# from inspect import getcallargs 获得真实的参数
 
 
 # try 的 else
@@ -72,10 +98,27 @@ conn.ssl # 是否是SLL连接
 # 选择KEY的 lambda ==================================================================
 from operator import itemgetter
 
-
+# 原来tornado的 yield  是为了注册回调函数,方便返回值,代码同步的作用
+# 如果要全异步，真正的办法是不加yield 但是一定要启动一个tornado的io_loop
 # python 命令行 参数方法
 
 
 # 断点续传 http
 
-#
+# BeautifulSoup =====================================================================
+
+递归深度 recursive=False  例如find("div") 只查找子级别 不查找孙级别及以下的
+
+# 删除子dom
+dom = """
+<div class="crumbs">
+    <a href="http://video.duowan.com">多玩视频</a>
+    <i></i><a href="http://video.duowan.com/u/1434552658">虎牙视频</a>
+    <i></i>
+    提取字符串
+</div>
+
+"""
+soup = BeautifulSoup(dom)
+[s.extract() for s in soup(['a','i'])] # 都删除
+soup.getText() ->提取字符串
