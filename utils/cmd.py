@@ -1,5 +1,5 @@
 # coding:utf-8
-
+from sys import platform
 from os import popen as sys_popen
 from logging import getLogger, DEBUG
 from subprocess import PIPE, Popen as subprocess_popen
@@ -54,4 +54,7 @@ class SSHClient(_SSHClient):
         return stdout.read() or e
 
 
+if "win" not in platform:
+    from sh import ifconfig  # 好用到哭的库 回头研究
 
+    print ifconfig("ech0")
