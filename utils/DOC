@@ -21,6 +21,10 @@
 
 # 商和余数同时得到 divmod()
 
+# from sys import getrefcount
+# a = 1
+# print getrefcount(a) # 获得该变量被引用的次数
+
 --------------------------------------------------------------------------------
 |                             双端队列                                          |
 --------------------------------------------------------------------------------
@@ -122,3 +126,29 @@ dom = """
 soup = BeautifulSoup(dom)
 [s.extract() for s in soup(['a','i'])] # 都删除
 soup.getText() ->提取字符串
+
+
+# =======================================================================================
+
+functools.total_ordering
+复制代码 代码如下:
+
+functools.total_ordering(cls)
+
+这个装饰器是在python2.7的时候加上的，它是针对某个类如果定义了__lt__、le、gt、__ge__这些方法中的至少一个，使用该装饰器，则会自动的把其他几个比较函数也实现在该类中
+复制代码 代码如下:
+
+@total_ordering
+class Student:
+    def __eq__(self, other):
+        return ((self.lastname.lower(), self.firstname.lower()) ==
+                (other.lastname.lower(), other.firstname.lower()))
+    def __lt__(self, other):
+        return ((self.lastname.lower(), self.firstname.lower()) <
+                (other.lastname.lower(), other.firstname.lower()))
+print dir(Student)
+
+得到
+复制代码 代码如下:
+
+['__doc__', '__eq__', '__ge__', '__gt__', '__le__', '__lt__', '__module__']

@@ -77,7 +77,7 @@ if __name__ == '__main__':
                         timeout_number += 1
 
 
-    start, timeout_number, req_num = time(), 0, 1000
+    start, timeout_number, req_num = time(), 0, 10000
     # IOLoop().current().add_callback(TornadoTest(leaders=100).start)
     # IOLoop().current().start()
     IOLoop().current().run_sync(TornadoTest().start)

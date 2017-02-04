@@ -2,9 +2,15 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    "requests",
-    "jieba",
-    "chardet",
+    "sh", # 贼好用的库
+    "requests",  # HTTP库
+    "paramiko",  # SSH登陆
+    "tornado",  # web框架
+    "jieba",  # 分词
+    "chardet",  # 检测字符串编码
+    "pika",  # 队列
+    "curl_httpclient",  # tornado 异步请求代理实现
+    "user_agent",  # HTTP 随机头
 ]
 setup(
     name="utils",
