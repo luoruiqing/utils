@@ -38,7 +38,7 @@ Logger._log = log_wrapper(Logger._log)
 def get_mongodb_logger(collection, db="log", host='localhost', port=None,
                        username=None, password=None, level=NOTSET):
     # 将日志写入到mongodb中
-    from mongolog.handlers import MongoHandler
+    from mongolog.handlers import MongoHandler # mongolog 这是一个log库
     logger = getLogger()
     logger.setLevel(DEBUG)
     logger.addHandler(MongoHandler(collection, db))
