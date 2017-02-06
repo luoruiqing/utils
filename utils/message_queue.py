@@ -39,6 +39,7 @@ class Message(str):
         self.channel = channel
         self.method_sig = method_sig
         self.acked = False
+        super(Message, self).__init__(string)
 
     def acknowledgement(self):
         logger.debug("Acknowledgement message: %s." % self)
@@ -75,7 +76,7 @@ class MessageQueueManager(ClosingContextManager):
         self.queue_name = queue  # 队列
         self.virtual_host = virtual_host
         self.arguments = arguments  # 队列是键值对形式的参数
-        self.interval = interval # 重试间隔时间
+        self.interval = interval  # 重试间隔时间
         self.temporary = temporary  # 临时队列 偶尔会保留队列，但是过一段时间mq会自行删除
         self.surplus = None  # 剩余的个数
         self.connect()  # 第一次进入便是死循环
