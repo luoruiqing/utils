@@ -36,8 +36,6 @@ class Notepad(dict):
         self.file.write(dumps(self, indent=4))
         self.file.close()
 
-    def __call__(self, *args, **kwargs):
-        return self
 
 
 if __name__ == '__main__':
