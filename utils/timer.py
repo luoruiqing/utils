@@ -139,11 +139,11 @@ def get_utc_time(timestamp):
 
 del get_utc_time
 if __name__ == '__main__':
-    # print "我要获得3月份的时间戳", format_time(get_timestamp("3月份"))
-    # print "我要获得向前偏移1星期的日期", format_time(offset_time(weeks=-1))
-    # print "向前偏移1天", format_time(offset_time(day=-1))
-    # print "我要本月3号的日志", format_time(replace_time(day=3))
-    # print "我要获得当前是周几", get_week()
-    # print "我要获得本月3号是周几", get_week(replace_time(day=3))
-    # print '"我昨天看电影了",昨天几号?', format_time(get_timestamp("我昨天看电影了"))
-    print "下载剩余%s" % convert_second(3600 * 21 + 3765)
+    print "我要获得3月份的时间戳", format_time(get_timestamp("3月份"))
+    print "我要获得向前偏移1星期的日期", format_time(offset_time(weeks=-1))
+    print "向前偏移1天", format_time(offset_time(day=-1))
+    print "我要本月3号的日期", format_time(replace_time(day=3))
+    print "我要获得当前是周几", get_week()
+    print "我要获得本月3号是周几", get_week(replace_time(day=3))
+    print '"我昨天看电影了",昨天几号?', format_time(get_timestamp("我昨天看电影了"))
+    print "下载剩余:%s" % convert_second(3600 * 21 + 3765)
