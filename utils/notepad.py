@@ -10,9 +10,6 @@ class Notepad(dict):
     """
 
     # 基本实例使用字典 关于取交集 差集使用字典的key做set来做
-    def __new__(cls, *args, **kwargs):
-        return dict.__new__(cls)
-
     def __init__(self, filename):
         if exists(filename) and isfile(filename) and getsize(filename):  # 文件存在 是个文件 同时不是空文件
             self.file = open(filename, "a+")  # 读写模式
