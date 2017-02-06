@@ -34,7 +34,7 @@ class Notepad(dict):
 
         """
         self.file.seek(0)  # 指针移动到顶部
-        self.file.truncate()  # 清空指正后面所有内容
+        self.file.truncate()  # 清空指针后面所有内容
         self.file.seek(0)  # 回到顶部
         self.file.write(dumps(self, indent=4))
         self.file.close()
