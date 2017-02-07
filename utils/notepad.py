@@ -11,37 +11,41 @@ class Notepad(dict):
 
     # 基本实例使用字典 关于取交集 差集使用字典的key做set来做
     def __init__(self, filename):
-        if exists(filename) and isfile(filename) and getsize(filename):  # 文件存在 是个文件 同时不是空文件
-            self.file = open(filename, "a+")  # 读写模式
+        if exists(filename) and isfile(filename) and getsize(filename):
+            self.file = open(filename, "a+", 0)  # 读写模式
         else:
-            self.file = open(filename, "w+")  # 新建模式
+            self.file = open(filename, "w+", 0)  # 新建模式
         self.update(loads(self.file.read() or "{}"))  # 更新进来
         super(Notepad, self).__init__()
 
-    def __del__(self):
-        """ 这可能是我用python以来踩过最大的坑了
-            当执行 __del__方法时，在外部导入的json.dumps已经被清除了
-            当你执行时候并不会很显式的看到错误内容，而是：
--（Exception TypeError: "'NoneType' object is not callable" in <bound method Notepad.__del__ of {}> ignored）
-            这个错误信息简直误导到我怀疑人生了。。。
-            如果是后导入dumps的话 在__del__内就不可用了
-            想要看到bug 就修改文件上面的导入代码
-            - from os.path import isfile, exists, getsize
-            - from json import loads,dumps
+    def __setitem__(self, key, value):
+        super(Notepad, self).__setitem__(key, value)
+        self.refresh()
 
-        """
+    def _refresh(self):
         self.file.seek(0)  # 指针移动到顶部
         self.file.truncate()  # 清空指针后面所有内容
         self.file.seek(0)  # 回到顶部
         self.file.write(dumps(self, indent=4))
+
+    def refresh(self):
+        try:
+            self._refresh()
+        except KeyboardInterrupt:
+            self._refresh()
+            self.file.close() # 关闭文件后 报错
+            raise
+
+    def __del__(self):
         self.file.close()
 
 
-
 if __name__ == '__main__':
-    notepad = Notepad("test1.txt")
-    print notepad
-    notepad["task2"] = "ok"
-    notepad["task3"] = "ok"
-    notepad.update({"tasks": "over~"})
-    print notepad
+    notepad = Notepad("test.txt")
+
+    from time import sleep, time
+
+    for x in range(1000):
+        notepad[x] = x
+        print time()
+        sleep(0.01) # 在win上一定要做一些事情 例如延时 不然不成功
