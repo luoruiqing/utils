@@ -17,7 +17,7 @@ class Pager:
         self.list_limit = list_limit  # 页码合集限制
 
     @property
-    def pagination(self):
+    def is_pages(self):
         """ 是否可以分页 """
         if self.max_page != 1:
             return True
@@ -112,7 +112,7 @@ class Pager:
 if __name__ == '__main__':
     # print Pager(page=15, list_limit=10, total=3000).page_list
     p = Pager(page=10, list_limit=10, total=300)
-    print "是否可以分页", p.pagination
+    print "是否可以分页", p.is_pages
     print "当前页", p.page
     print "上一页", p.prev
     print "下一页", p.next
