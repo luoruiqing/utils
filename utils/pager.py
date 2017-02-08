@@ -111,18 +111,19 @@ class Pager:
 
 if __name__ == '__main__':
     # print Pager(page=15, list_limit=10, total=3000).page_list
-    p = Pager(page=10, list_limit=10, total=300)
-    print "是否可以分页", p.is_pages
-    print "当前页", p.page
-    print "上一页", p.prev
-    print "下一页", p.next
-    print "首页", p.first
-    print "末页", p.last
-    print "是否是第一页", p.is_first
-    print "是否是最后一页", p.is_last
-    print "数据库查询多少条开始", p.start
-    print "数据库查询多少条结束", p.end
-    print "数据库共有多少条", p.total
-    print "数据库一页查询多少条", p.limit
-    print "分页要多少页数", p.list_limit
-    print "分页后页码列表", p.page_list
+    p = Pager(page=10000, list_limit=10, total=300)
+    print "是否可以分页", p.is_pages  # True
+    print "当前页", p.page  # 15
+    print "上一页", p.prev  # 14
+    print "下一页", p.next  # 15
+    print "首页", p.first  # 1
+    print "末页", p.last  # 15
+    print "是否是第一页", p.is_first  # False
+    print "是否是最后一页", p.is_last  # True
+    print "从多少条开始", p.start  # 280
+    print "从多少条结束", p.end  # 300
+    print "共有多少条", p.total  # 300
+    print "共有多少页/最大页数", p.max_page  # 15
+    print "一页多少条", p.limit  # 20
+    print "需多少个分页", p.list_limit  # 10
+    print "分页后页码列表", p.page_list  # [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
