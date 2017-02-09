@@ -37,6 +37,12 @@ deque(maxlen=10) 定长列表 数组 双端队列 maxlen 决定长度 自动挤�
 
 # from inspect import getcallargs 获得真实的参数
 
+
+a = {None: 1, 1: 1, 2: 3} # 元数据
+print (a[k] for k in a if k) # 这里比较厉害了 圆括号产生的居然是生成器
+print [a[k] for k in a if k] # 而方括号是直接生成列表
+print next((a[k] for k in a if k), None) # next居然还有默认值
+
 # python文件指针的问题 ========================================================================
 with open("test.txt", "r+") as f:
         new_content = f.read().replace("{", "") # 读取替换

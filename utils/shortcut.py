@@ -25,6 +25,7 @@ def get_move_duplicate_list(listing, copy=True):
     listing[:] = result
     return listing
 
+
 def check_is_admin(f):
     """ 关于位置参数的问题  例如：username是一个位置参数
     在装饰器 或者全部传参数时候 通过 from inspect import getcallargs 获得真实的参数
@@ -73,13 +74,12 @@ def closed_eval(eval_py="", must_vars=None):
 RESERVED_NUMBERS_FUNC = lambda item: isinstance(item, NumberType) or item  # 是数字或存在
 
 
-def filter_one(function_or_none, sequence):
+def filter_one(function, sequence, default=None):
     """ 只获得一个满足条件的数据 """
-    if not hasattr(function_or_none, "__call__"):
-        function_or_none = bool
-    for item in sequence:
-        if function_or_none(item):
-            return item
+
+    if not hasattr(function, "__call__"):
+        function = bool
+    return next((item for item in sequence if function(item)), default)  # 这里很高级 (...for...) 居然是生成器
 
 
 filter_reserved_number = partial(filter, RESERVED_NUMBERS_FUNC)  # filter_reserved_number([0, True, 2, 3])
