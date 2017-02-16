@@ -37,7 +37,7 @@ deque(maxlen=10) 定长列表 数组 双端队列 maxlen 决定长度 自动挤�
 
 # from inspect import getcallargs 获得真实的参数
 
-
+# 正则 ?P<name> 返回一个字典 使用名称捕获，捕获的是按括号顺序来的，嵌套太多太复杂可以使用?P
 a = {None: 1, 1: 1, 2: 3} # 元数据
 print (a[k] for k in a if k) # 这里比较厉害了 圆括号产生的居然是生成器
 print [a[k] for k in a if k] # 而方括号是直接生成列表
@@ -120,6 +120,7 @@ dom = """
 """
 soup = BeautifulSoup(dom)
 [s.extract() for s in soup(['a','i'])] # 都删除
+soup.prettify() -> 格式化html
 soup.getText() ->提取字符串
 
 # 汉字转拼音的库 xpinyin
