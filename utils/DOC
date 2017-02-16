@@ -96,7 +96,8 @@ conn.ssl # 是否是SLL连接
 
 # 选择KEY的 lambda ==================================================================
 from operator import itemgetter
-
+itemgetter # 选择
+methodcaller("decompose")(soup) 调用方法名字和参数传入实例
 # 原来tornado的 yield  是为了注册回调函数,方便返回值,代码同步的作用
 # 如果要全异步，真正的办法是不加yield 但是一定要启动一个tornado的io_loop
 # python 命令行 参数方法
