@@ -2,18 +2,31 @@
 """
 扩展方法 使用前考虑性能---------------------------------------------------------------------
 """
+
 from copy import deepcopy
+from sys import version_info
 from inspect import getcallargs  # https://www.zhihu.com/question/19794855
 from collections import Iterable
 from functools import partial, wraps
-from types import IntType, LongType, FloatType, StringTypes
+from types import IntType, LongType, FloatType, StringTypes, MethodType, UnboundMethodType, BuiltinMethodType
 
 DEFAULT_FUNC = lambda item: item
 UNIQUE = type("Unique", tuple([]), {"__new__": lambda *args, **kwargs: UNIQUE})  # 此方法是全局单例 实例化也是类本身
 NumberType = (IntType, LongType, FloatType)
+MethodsType = (MethodType, UnboundMethodType, BuiltinMethodType)
 
 # 压平多嵌套列表
 flat = lambda l: sum(map(flat, l), []) if isinstance(l, list) else [l]
+
+py2 = version_info[0] == 2
+py3 = not py2
+
+
+def call_rself(method, *args, **kwargs):
+    """调用方法，然后返回自身 dome: call_rself(range(55).remove, 1) """
+    assert isinstance(method, MethodsType)
+    method(*args, **kwargs)
+    return getattr(method, '__self__') or getattr(method, 'im_self')
 
 
 def get_move_duplicate_list(listing, copy=True):
@@ -76,7 +89,7 @@ RESERVED_NUMBERS_FUNC = lambda item: isinstance(item, NumberType) or item  # 是
 
 def filter_one(function, sequence, default=None):
     """ 只获得一个满足条件的数据 """
-
+    # TODO 这里会引发迭代停止的错误
     if not hasattr(function, "__call__"):
         function = bool
     return next((item for item in sequence if function(item)), default)  # 这里很高级 (...for...) 居然是生成器
