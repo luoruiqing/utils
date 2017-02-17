@@ -7,8 +7,11 @@ from types import StringTypes, IntType, FloatType, LongType, NoneType
 DateType = (type(date), type(date(1970, 1, 1)))
 DatetimeType = (type(_datetime), type(_datetime.now()))
 NumberType = (IntType, FloatType, LongType)
+DEFAULT_FORMATTER = "%Y-%m-%d %H:%M:%S"
 
-MICROSECOND = 0.000001  # 微秒
+PICOSECOND = 0.000000000001  # 皮秒
+NANOSECOND = PICOSECOND * 1000  # 纳秒
+MICROSECOND = NANOSECOND * 1000  # 微秒
 MILLISECOND = MICROSECOND * 1000  # 毫秒
 SECOND = MILLISECOND * 1000  # 秒 这里秒作为基础单位
 MINUTE = SECOND * 60  # 分
@@ -19,6 +22,7 @@ BEFORE_DAY = DAY * 3  # 前天
 WEEK = DAY * 7  # 星期
 MONTH = DAY * 30  # 月
 YEAR = DAY * 365  # 年
+CENTURY = YEAR * 100  # 世纪/百年
 
 STYLES = [
     ("%Y-%m-%d", strptime),
@@ -42,32 +46,45 @@ STYLES = [
 
 ]
 
-TimerError = type('TimerError', (Exception,), dict())
+
+def timestamp(datetime_object=None, **kwargs):
+    """ 获得一个时间戳 """
+    return mktime(datetime(datetime_object).timetuple())
 
 
-def format_time(timestamp, formatter="%Y-%m-%d %H:%M:%S"):
+def datetime(object=None, year=None, month=None, day=None, hour=None, minute=None, second=None,
+             millisecond=None, microsecond=None, format=DEFAULT_FORMATTER):
+    """ 获得时间对象 默认使用当前时间 可以是<datetime对象>、<date对象>和<时间戳> """
+    dt_obj, now = None, _datetime.now()
+    if isinstance(object, (DatetimeType, DateType)):
+        return object
+    elif isinstance(object, StringTypes):
+        dt_obj = _datetime.strptime(object, format)
+    elif isinstance(object, NumberType):
+        dt_obj = _datetime.fromtimestamp(object)
+    elif any([year, month, day, hour, minute, second, millisecond, microsecond]):
+        if isinstance(microsecond, NoneType) and not isinstance(millisecond, NoneType):
+            microsecond = (millisecond * 1000.0)
+        dt_obj = _datetime(year=year or now.year,
+                           month=month or now.month,
+                           day=day or now.day,
+                           hour=hour or now.hour,
+                           minute=minute or now.minute,
+                           second=second or now.second,
+                           microsecond=int(microsecond or now.microsecond))
+    return dt_obj or now
+
+
+def format_time(object=None, format=DEFAULT_FORMATTER, **kwargs):
     """ 时间戳转字符 默认格式: %Y-%m-%d %H:%M:%S """
-    return strftime(formatter, localtime(timestamp))
-
-
-def datetime_object(datetime=None, year=None, month=None, day=None,
-                    hours=None, minutes=None, seconds=None, microsecond=None):
-    """ 获得时间对象 默认使用当前时间 可以是<datetime对象>、<date对象>和<时间戳> 不支持星期 """
-    datetime_obj = None
-    if isinstance(datetime, NumberType):
-        datetime_obj = _datetime.fromtimestamp(datetime)
-    elif datetime is None:
-        datetime_obj = _datetime.now()
-    if isinstance(datetime_obj, (DatetimeType, DateType)):
-        return datetime_obj or datetime
-    raise TimerError('Unable to convert to date time object.')
+    format = kwargs.pop("format", format)
+    return datetime(object, **kwargs).strftime(format)
 
 
 def get_timestamp(string, default=None):
     """根据时间日期字符获得时间戳
     get_timestamp('刚刚') >>> _now()
     """
-
     string = string.strip()
     for style, func in STYLES:
         if isinstance(style, StringTypes):
@@ -84,27 +101,20 @@ def get_timestamp(string, default=None):
     return default
 
 
-def get_sec_from_duration(duration):
-    tmp = duration.split(":")
-    dur = 0
-    for i in range(0, len(tmp)):
-        dur = dur * 60 + int(tmp[i])
-    return dur
-
-
-def offset_time(timestamp=None, year=0, month=0, day=0, hours=0, minutes=0, seconds=0, milliseconds=0, weeks=0):
+def offset_time(object=None, year=0, month=0, day=0, hour=0, minute=0, second=0,
+                millisecond=0, microsecond=0, weeks=0):
     """ 偏移时间 负数左偏移 正数右偏移 0不偏移 默认使用当前时间 """
-    timestamp = (timestamp if isinstance(timestamp, NumberType) else _now())
-    offset = (year * YEAR) + (month * MONTH) + (day * DAY) + (hours * HOUR) + (minutes * MINUTE) + (
-        seconds * SECOND) + (milliseconds * MILLISECOND) + (weeks * WEEK)
-    return timestamp + offset
+    _timestamp = timestamp(object)
+    offset = (year * YEAR) + (month * MONTH) + (day * DAY) + (hour * HOUR) + (minute * MINUTE) + (
+        second * SECOND) + (millisecond * MILLISECOND) + (microsecond * MICROSECOND) + (weeks * WEEK)
+    return _timestamp + offset
 
 
-def replace_time(datetime=None, year=None, month=None, day=None,
-                 hours=None, minutes=None, seconds=None, microsecond=None):
+def replace_time(dt=None, year=None, month=None, day=None,
+                 hour=None, minute=None, second=None, microsecond=None):
     """ 替换时间  默认使用当前时间 可以是<datetime对象>、<date对象>和<时间戳> 不支持星期，替换星期没意义 替换值必须是存在日期 """
-    datetime_obj = datetime_object(datetime, year, month, day, hours, minutes, seconds, microsecond)
-    kwargs = dict(year=year, month=month, day=day, hour=hours, minute=minutes, second=seconds, microsecond=microsecond)
+    datetime_obj = datetime(dt, year, month, day, hour, minute, second, microsecond)
+    kwargs = dict(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond)
     kwargs = dict((k, v) for k, v in kwargs.items() if v)  # 过滤空参数
     return mktime(datetime_obj.replace(**kwargs).timetuple())
 
@@ -115,7 +125,7 @@ WEEK_CN_NUMBER = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "�
 
 def get_week(*args, **kwargs):
     """ 获得当前或指定日期的星期数 """
-    return int(datetime_object(*args, **kwargs).strftime("%w"))
+    return int(datetime(*args, **kwargs).strftime("%w"))
 
 
 def convert_second(second):
@@ -137,13 +147,16 @@ def get_utc_time(timestamp):
     pass
 
 
+ftm = format_time
 del get_utc_time
+
 if __name__ == '__main__':
-    print "我要获得3月份的时间戳", format_time(get_timestamp("3月份"))
-    print "我要获得向前偏移1星期的日期", format_time(offset_time(weeks=-1))
-    print "向前偏移1天", format_time(offset_time(day=-1))
-    print "我要本月3号的日期", format_time(replace_time(day=3))
-    print "我要获得当前是周几", get_week()
-    print "我要获得本月3号是周几", get_week(replace_time(day=3))
+    print "1888年的今天：", datetime(year=1888)
+    print "我要获得3月份的时间戳：", format_time(get_timestamp("3月份"))
+    print "我要获得向前偏移1星期的日期：", format_time(offset_time(weeks=-1))
+    print "向前偏移1天：", format_time(offset_time(day=-1))
+    print "我要本月3号的日期：", format_time(replace_time(day=3))
+    print "我要获得当前是周几：", get_week()
+    print "我要获得本月3号是周几：", get_week(replace_time(day=3))
     print '"我昨天看电影了",昨天几号?', format_time(get_timestamp("我昨天看电影了"))
     print "下载剩余:%s" % convert_second(3600 * 21 + 3765)
