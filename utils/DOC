@@ -120,7 +120,9 @@ dom = """
 
 """
 soup = BeautifulSoup(dom)
-[s.extract() for s in soup(['a','i'])] # 都删除
+[s.extract() for s in soup(['a','i'])] # 都删除 并且会提高效率
+BeautifulSoup(html, parseOnlyThese=SoupStrainer('a', href=True)) # 只加载A标签 并且符合条件的
+
 soup.prettify() -> 格式化html
 soup.getText() ->提取字符串
 soup.decompose() 删除所有子节点，保留当前节点
