@@ -9,11 +9,29 @@ logger = getLogger()
 logger.setLevel(DEBUG)
 
 
-def subprocess_cmd(command):
-    """ subprocess_cmd("ping www.baidu.com") """
+def subprocess_cmd(command, *args, **kwargs):
+    """ subprocess_cmd("ping 8.8.8.8") """
     logger.debug('process cmd: %s' % command)
-    process = subprocess_popen(command, shell=True, stdout=PIPE, stderr=PIPE)
-    return process.stdout.read() or process.stderr.read()
+    process = subprocess_popen(command, *args, **kwargs)
+    return process.stdout.read().strip() or process.stderr.read()
+
+
+def subprocess_cmd_noblock(command, *args, **kwargs):
+    """ 这个方法会返回迭代器，一边读一边返回
+    for row in subprocess_cmd_noblock("ping 8.8.8.8"):
+        print row,
+    """
+    logger.debug('process cmd: %s' % command)
+    stdin, stdout, stderr = [kwargs.pop(field, PIPE) for field in ("stdin", "stdout", "stderr")]
+    process = subprocess_popen(command, stdin=stdin, stdout=stdout, stderr=stderr, *args, **kwargs)
+    while process.poll() is None:  # 下面只是展示用法，不好封装这个方法
+        try:
+            yield process.stdout.readline()
+        except KeyboardInterrupt:
+            pass  # 中断信号忽略,如果还有内容继续读取
+    error = process.stderr.read()
+    if error:
+        yield error
 
 
 def sys_cmd(command):
