@@ -89,7 +89,6 @@ RESERVED_NUMBERS_FUNC = lambda item: isinstance(item, NumberType) or item  # 是
 
 def filter_one(function, sequence, default=None):
     """ 只获得一个满足条件的数据 """
-    # TODO 这里会引发迭代停止的错误
     if not hasattr(function, "__call__"):
         function = bool
     return next((item for item in sequence if function(item)), default)  # 这里很高级 (...for...) 居然是生成器
