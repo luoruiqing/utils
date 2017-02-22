@@ -58,6 +58,43 @@ def check_is_admin(f):
     return wrapper
 
 
+def default_property(func):
+    """ 只执行一次的默认值方法，如果制造一个对象有很多个属性，都是执行一次的，那就写的太多了
+    class A():
+        @property
+        def name(self):
+            if not hasattr(self, "__name"):
+                setattr(self, "__name", "luoruiqing")
+            return getattr(self, "__name")
+
+
+    class B():
+        @default_property
+        def name(self):
+            return "luoruiqing"
+
+
+    if __name__ == '__main__':
+        a = A()
+        print "my name is %s." % a.name
+        print "my name is %s." % a.name
+        print "=============================="
+        b = B()
+        print "my name is %s." % b.name
+        print "my name is %s." % b.name
+    """
+    attr_name = "__" + func.__name__  # 私有变量名称
+
+    @property
+    @wraps(func)
+    def wrapper(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, func(self))
+        return getattr(self, attr_name)
+
+    return wrapper
+
+
 def to_items(item, type=tuple):
     """ 格式化为元祖，迭代类型中不包含字符 1 > (1,)  ["a"] > ["a"] """
     if isinstance(item, Iterable) and not isinstance(item, StringTypes):
