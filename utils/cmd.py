@@ -26,7 +26,9 @@ def subprocess_cmd_noblock(command, *args, **kwargs):
     process = subprocess_popen(command, stdin=stdin, stdout=stdout, stderr=stderr, *args, **kwargs)
     while process.poll() is None:  # 下面只是展示用法，不好封装这个方法
         try:
-            yield process.stdout.readline()
+            r = process.stdout.readline()
+            if r:
+                yield r
         except KeyboardInterrupt:
             pass  # 中断信号忽略,如果还有内容继续读取
     error = process.stderr.read()
