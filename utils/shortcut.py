@@ -67,6 +67,11 @@ def to_items(item, type=tuple):
     return r
 
 
+def strips(listing, chars=None):
+    """ 对列表内的每一项执行strips """
+    return [item.strip(chars) for item in listing]
+
+
 def replaces(str, **kwargs):
     """ 多次替换 replaces("abc", a="1", b="2") """
     for k, v in kwargs.iteritems():
