@@ -95,6 +95,16 @@ def default_property(func):
     return wrapper
 
 
+'''
+def subsection(listing):  # 正常版本
+    """  sub(range(5)) -> [[0, 1], [1, 2], [2, 3], [3, 4]] """
+    result = []
+    print reduce(lambda a, b: result.append([a, b]) or b, listing)
+    return result
+'''
+sub = subsection = lambda listing: (reduce(lambda a, b, c=[]: c.append([a, b]) or b or c, listing + [None]))[:-1]
+
+
 def to_items(item, type=tuple):
     """ 格式化为元祖，迭代类型中不包含字符 1 > (1,)  ["a"] > ["a"] """
     if isinstance(item, Iterable) and not isinstance(item, StringTypes):
