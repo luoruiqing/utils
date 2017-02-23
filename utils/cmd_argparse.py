@@ -33,3 +33,4 @@ parser.add_argument("-n", "--num", help="多个参数", nargs="+", type=int)
 parser.add_argument("-abc", "--aabbcc112233", help="指定变量名", dest="var", type=int)  # print args.var
 # 获得参数
 args = parser.parse_args(argv[1:])  # 不填默认是 argv[1:]
+print args
