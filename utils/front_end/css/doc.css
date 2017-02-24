@@ -1,0 +1,21 @@
+.default {
+    min-height: 100%; /*最小宽度也是全屏*/
+    position: relative; /* static(默认) absolute(浮出) relative(固定)  */
+    color: #fff; /*字体颜色为白色*/
+    /*vertical-align
+    长度	通过距离升高（正值）或降低（负值）元素。'0cm'等同于'baseline'
+    百分值 – %	通过距离（相对于1line-height1值的百分大小）升高（正值）或降低（负值）元素。'0%'等同于'baseline'
+    baseline	默认。元素的基线与父元素的基线对齐。
+    sub	降低元素的基线到父元素合适的下标位置。
+    super	升高元素的基线到父元素合适的上标位置。
+    top	把对齐的子元素的顶端与line box顶端对齐。
+    text-top	把元素的顶端与父元素内容区域的顶端对齐。
+    middle	元素的中垂点与 父元素的基线加1/2父元素中字母x的高度 对齐。
+    bottom	把对齐的子元素的底端与line box底端对齐。
+    text-bottom	把元素的底端与父元素内容区域的底端对齐。
+    inherit	采用父元素相关属性的相同的指定值。
+    */
+    vertical-align: middle; /* 垂直中值 */
+    opacity: 0; /* 透明度 */
+    filter: alpha(opacity=0); /* 效果 http://www.w3cplus.com/css3/ten-effects-with-css3-filter */
+}
