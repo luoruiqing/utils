@@ -91,8 +91,10 @@ conn.server_thread_id # 本次连接被分配的线程ID
 conn.ssl # 是否是SLL连接
 
 
-
-
+# HTML处理库 ========================================================================
+from HTMLParser import HTMLParser
+html_parser = HTMLParser()
+# html_parser.unescape('&lt;abc&gt;') [out->] <abc> # 非转义
 
 # 选择KEY的 lambda ==================================================================
 from operator import itemgetter
