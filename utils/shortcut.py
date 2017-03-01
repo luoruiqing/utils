@@ -2,60 +2,39 @@
 """
 扩展方法 使用前考虑性能---------------------------------------------------------------------
 """
-
+from time import sleep
 from copy import deepcopy
 from sys import version_info
 from inspect import getcallargs  # https://www.zhihu.com/question/19794855
 from collections import Iterable
 from functools import partial, wraps
-from types import IntType, LongType, FloatType, StringTypes, MethodType, UnboundMethodType, BuiltinMethodType
+from types import IntType, LongType, FloatType, StringTypes, MethodType, UnboundMethodType, \
+    BuiltinMethodType, TypeType
 
-DEFAULT_FUNC = lambda item: item
-UNIQUE = type("Unique", tuple([]), {"__new__": lambda *args, **kwargs: UNIQUE})  # 此方法是全局单例 实例化也是类本身
+# Ellipsis 全局单例 不可回调 不可实例化 用 “is” 检测是不是本身
+DefaultFunc = lambda item: item
 NumberType = (IntType, LongType, FloatType)
-MethodsType = (MethodType, UnboundMethodType, BuiltinMethodType)
-
-# 压平多嵌套列表
-flat = lambda l: sum(map(flat, l), []) if isinstance(l, list) else [l]
+MethodType = (MethodType, UnboundMethodType, BuiltinMethodType)
+ReservedNumbersFunc = lambda item: isinstance(item, NumberType) or item  # 保留数字
 
 py2 = version_info[0] == 2
 py3 = not py2
 
 
+# ====================================== 方法 Methods ============================================
+def closed_eval(eval_py="", must_vars=None):
+    """ eval_py执行的语句 must_vars 需要使用的变量 """
+    must_vars = must_vars if must_vars else {}
+    for var, value in must_vars.items():
+        locals()[var] = value
+    return eval(eval_py)
+
+
 def call_rself(method, *args, **kwargs):
     """调用方法，然后返回自身 dome: call_rself(range(55).remove, 1) """
-    assert isinstance(method, MethodsType)
+    assert isinstance(method, MethodType)
     method(*args, **kwargs)
     return getattr(method, '__self__') or getattr(method, 'im_self')
-
-
-def get_move_duplicate_list(listing, copy=True):
-    """ 有序set 列表去重后保持有序 """
-    new_list = list(set(listing))
-    result = sorted(new_list, key=listing.index)
-    if copy:
-        return result
-    listing[:] = result
-    return listing
-
-
-def check_is_admin(f):
-    """ 关于位置参数的问题  例如：username是一个位置参数
-    在装饰器 或者全部传参数时候 通过 from inspect import getcallargs 获得真实的参数
-    @check_is_admin
-    def get_food(username, food='chocolate'):
-        return "{0} get food: {1}".format(username, food)
-    """
-
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        func_args = getcallargs(f, *args, **kwargs)
-        print func_args
-        if func_args.get('username') != 'admin':
-            raise Exception("This user is not allowed to get food")
-        return f(*args, **kwargs)
-
-    return wrapper
 
 
 def default_property(func):
@@ -95,15 +74,36 @@ def default_property(func):
     return wrapper
 
 
-'''
-def subsection(listing):  # 正常版本
-    """  sub(range(5)) -> [[0, 1], [1, 2], [2, 3], [3, 4]] """
-    result = []
-    print reduce(lambda a, b: result.append([a, b]) or b, listing)
-    return result
-'''
-sub = subsection = lambda listing: (reduce(lambda a, b, c=[]: c.append([a, b]) or b or c, listing + [None]))[:-1]
+def retry(error=Exception, default=Ellipsis, number=3, interval=0):
+    """ 重试装饰器, 错误类,默认值(无则报错), 重试次数, 重试间隔时间
+            err1 = retry(default=None)(lambda: 1 + 2)
+            err2 = retry(lambda: 1 + 2)
+    """
 
+    def _wrapper(*args, **kwargs):
+        for attempt in range(number):
+            try:
+                return func(*args, **kwargs)
+            except error, e:
+                sleep(interval)
+                if attempt == number - 1:
+                    if default is Ellipsis:
+                        raise e
+                    return default
+
+    def wrapper(func):
+        return wraps(func)(_wrapper)
+
+    if not (isinstance(error, TypeType) and issubclass(error, BaseException)):  # 不是参数装饰器
+        func, error = error, Exception
+        return wrapper(func)
+    return wrapper
+
+
+flat = lambda l: sum(map(flat, l), []) if isinstance(l, list) else [l]  # 压平多嵌套列表
+
+
+# ======================================== 字符类型 StringType ==============================================
 
 def to_items(item, type=tuple):
     """ 格式化为元祖，迭代类型中不包含字符 1 > (1,)  ["a"] > ["a"] """
@@ -126,17 +126,9 @@ def replaces(str, **kwargs):
     return str
 
 
-def closed_eval(eval_py="", must_vars=None):
-    """ eval_py执行的语句 must_vars 需要使用的变量 """
-    must_vars = must_vars if must_vars else {}
-    for var, value in must_vars.items():
-        locals()[var] = value
-    return eval(eval_py)
-
-
 # 过滤器 =========================================================================================
 
-RESERVED_NUMBERS_FUNC = lambda item: isinstance(item, NumberType) or item  # 是数字或存在
+
 
 
 def filter_one(function, sequence, default=None):
@@ -146,9 +138,9 @@ def filter_one(function, sequence, default=None):
     return next((item for item in sequence if function(item)), default)  # 这里很高级 (...for...) 居然是生成器
 
 
-filter_reserved_number = partial(filter, RESERVED_NUMBERS_FUNC)  # filter_reserved_number([0, True, 2, 3])
+filter_reserved_number = partial(filter, ReservedNumbersFunc)  # filter_reserved_number([0, True, 2, 3])
 
-filter_one_reserved_number = partial(filter_one, RESERVED_NUMBERS_FUNC)  # 很多情况下的0也是要的  不是过滤掉
+filter_one_reserved_number = partial(filter_one, ReservedNumbersFunc)  # 很多情况下的0也是要的  不是过滤掉
 
 f = filter
 fn = filter_reserved_number
@@ -157,13 +149,54 @@ fon = filter_one_reserved_number
 
 
 # 基础 ============================================================================================
+
+def get_move_duplicate_list(listing, copy=True):
+    """ 有序set 列表去重后保持有序 """
+    new_list = list(set(listing))
+    result = sorted(new_list, key=listing.index)
+    if copy:
+        return result
+    listing[:] = result
+    return listing
+
+
+def check_is_admin(f):
+    """ 关于位置参数的问题  例如：username是一个位置参数
+    在装饰器 或者全部传参数时候 通过 from inspect import getcallargs 获得真实的参数
+    @check_is_admin
+    def get_food(username, food='chocolate'):
+        return "{0} get food: {1}".format(username, food)
+    """
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        func_args = getcallargs(f, *args, **kwargs)
+        print func_args
+        if func_args.get('username') != 'admin':
+            raise Exception("This user is not allowed to get food")
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
+# 将单个列表依次分段，上一个与下一个组成一个列表
+'''
+def subsection(listing):  # 正常版本
+    """  sub(range(5)) -> [[0, 1], [1, 2], [2, 3], [3, 4]] """
+    result = []
+    print reduce(lambda a, b: result.append([a, b]) or b, listing)
+    return result
+'''
+sub = subsection = lambda listing: (reduce(lambda a, b, c=[]: c.append([a, b]) or b or c, listing + [None]))[:-1]
+
+
 def check_field(field):
-    key, default, func = field, UNIQUE, DEFAULT_FUNC
+    key, default, func = field, Ellipsis, DefaultFunc
     if isinstance(field, Iterable) and not isinstance(field, basestring):
         if len(field) == 2:
             key, func = field
             if not hasattr(func, '__call__'):  # 2个参数 不是回调 就是默认值
-                default, func = func, DEFAULT_FUNC
+                default, func = func, DefaultFunc
         elif len(field) == 3:
             key, default, func = field
             if not hasattr(func, '__call__'):  # 3个参数 可能会反了
@@ -174,9 +207,9 @@ def check_field(field):
     return key, default, func
 
 
-def get_result(dictionary, key, default=UNIQUE, func=DEFAULT_FUNC):
-    result = dictionary[key] if default is UNIQUE else dictionary.get(key, default)  # 直选 预知的错误
-    return func(result) if result is not default or default is UNIQUE else result  # 得到值-转类型 没有值-设置默认值
+def get_result(dictionary, key, default=Ellipsis, func=DefaultFunc):
+    result = dictionary[key] if default is Ellipsis else dictionary.get(key, default)  # 直选 预知的错误
+    return func(result) if result is not default or default is Ellipsis else result  # 得到值-转类型 没有值-设置默认值
 
 
 def get(dictionary, field):
