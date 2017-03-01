@@ -150,14 +150,21 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 from time import sleep
 from functools import wraps
+from os import path as os_path
 from logging import getLogger, DEBUG
 from selenium.webdriver.common.keys import Keys  # 键盘
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver import Firefox, Chrome, PhantomJS
+from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains  # PC端操作
 from selenium.webdriver.common.touch_actions import TouchActions  # 移动端操作
+
+try:
+    from PIL import Image
+except ImportError:
+    from Image import Image
 
 logger = getLogger()
 logger.setLevel(DEBUG)
@@ -176,6 +183,29 @@ def retry(func):
 
 
 # 增强方法
-Chrome.__del__ = Chrome.quit  # 退出Chrome的时候关闭浏览器
+WebDriver.__del__ = WebDriver.quit  # 退出Chrome的时候关闭浏览器
 WebElement.find_element = retry(WebElement.find_element)
-Chrome.find_element = retry(Chrome.find_element)
+WebDriver.find_element = retry(WebDriver.find_element)
+
+
+def element_screen_shot(deriver, image_source, file_path, save=True):
+    """  传入已打开的浏览器实例和已选中的元素 截取这个元素的图片  """
+    assert image_source
+    file_path = file_path.replace(os_path.splitext(file_path)[1], ".png")  # 透明格式
+
+    size = image_source.size
+    location = image_source.location
+
+    left = location['x']
+    right = left + size['width']
+    top = location['y']
+    bottom = location['y'] + size['height']
+
+    deriver.save_screenshot(file_path)  # 截图
+
+    image = Image.open(file_path)
+
+    image = image.crop((left, top, right, bottom))  # 切图
+    if save:
+        image.save(file_path)  # 保存
+    return image
