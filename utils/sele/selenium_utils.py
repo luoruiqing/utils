@@ -168,29 +168,41 @@ except ImportError:
 
 logger = getLogger()
 logger.setLevel(DEBUG)
+DEFAULT_VALUE = type('DEFAULT_VALUE', tuple(object, ), {})
 
 
-def retry(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        for _ in range(3):
-            try:
-                return func(*args, **kwargs)
-            except NoSuchElementException:
-                sleep(.5)
+def retry(error=Exception, default=DEFAULT_VALUE, retry_number=3, retry_interval=0):
+    """ 重试装饰器,错误类，重试次数，重试间隔时间 """
+
+    def wrapper(func):
+        @wraps(func)
+        def _wrapper(*args, **kwargs):
+            for attempt in range(retry_number):
+                try:
+                    return func(*args, **kwargs)
+                except error, e:
+                    sleep(retry_interval)
+                    if attempt == retry_number - 1 and isinstance(default, DEFAULT_VALUE):
+                        raise e
+                    else:
+                        return default
+
+        return _wrapper
 
     return wrapper
 
 
 # 增强方法
+# 浏览器崩溃重启问题
 WebDriver.__del__ = WebDriver.quit  # 退出Chrome的时候关闭浏览器
-WebElement.find_element = retry(WebElement.find_element)
-WebDriver.find_element = retry(WebDriver.find_element)
+# WebDriver.get = WebDriver.get # 重试
+WebElement.find_element = retry(NoSuchElementException)(WebElement.find_element)
+WebDriver.find_element = retry(NoSuchElementException)(WebDriver.find_element)
 
 
 def element_screen_shot(deriver, image_source, file_path, save=True):
     """  传入已打开的浏览器实例和已选中的元素 截取这个元素的图片  """
-    assert image_source
+    assert image_source.is_displayed()  # 必须显示
     file_path = file_path.replace(os_path.splitext(file_path)[1], ".png")  # 透明格式
 
     size = image_source.size
