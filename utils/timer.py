@@ -1,7 +1,7 @@
 # coding:utf-8
-from re import compile, _pattern_type
+from time import strptime, mktime, time as _now
 from datetime import datetime as _datetime, date
-from time import strptime, mktime, strftime, localtime, time as _now
+from re import compile, _pattern_type as RegexType
 from types import StringTypes, IntType, FloatType, LongType, NoneType
 
 DateType = (type(date), type(date(1970, 1, 1)))
@@ -92,7 +92,7 @@ def get_timestamp(string, default=None):
                 return mktime(func(string, style))
             except ValueError:
                 pass
-        elif isinstance(style, _pattern_type):
+        elif isinstance(style, RegexType):
             r = style.search(string)
             if r:
                 return func(*r.groups())
