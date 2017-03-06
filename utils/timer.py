@@ -150,6 +150,11 @@ def get_utc_time(timestamp):
 ftm = format_time
 del get_utc_time
 
+""" 这种赋值会有延时的 a 和 b 是差距1秒的
+from time import sleep, time as now
+a, _, b = now(), sleep(1), now()
+print a, b
+"""
 if __name__ == '__main__':
     print "1888年的今天：", datetime(year=1888)
     print "我要获得3月份的时间戳：", format_time(get_timestamp("3月份"))
