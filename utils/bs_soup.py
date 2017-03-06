@@ -35,10 +35,6 @@ def findAll_class(self, class_name, tag_name=True):
     return self.findAll(tag_name, {"class": class_name})
 
 
-def find_id(self, id_name, tag_name=True):
-    return self.find(tag_name, {"id": id_name})
-
-
 @property
 def links(self, removal=True):
     return set(a["href"] for a in self.findAll("a", {"href": True}))
@@ -50,7 +46,6 @@ if hasattr(BeautifulSoup, 'find_all'):
     BeautifulSoup.find_all = fault_tolerance_wrapper(BeautifulSoup.find_all)
 BeautifulSoup.find_class = find_class
 BeautifulSoup.findAll_class = findAll_class
-BeautifulSoup.find_id = find_id
 BeautifulSoup.links = links
 
 Tag.find = fault_tolerance_wrapper(Tag.find)
@@ -59,7 +54,6 @@ if hasattr(Tag, 'find_all'):
     Tag.find_all = fault_tolerance_wrapper(Tag.find_all)
 Tag.find_class = find_class
 Tag.findAll_class = findAll_class
-Tag.find_id = find_id
 Tag.links = links
 
 if __name__ == '__main__':
