@@ -2,11 +2,12 @@
 from copy import copy
 from types import DictType
 from urllib import urlencode
+from traceback import format_exc
 from logging import getLogger, DEBUG
 from json import loads as json_loads
 from tornado.gen import coroutine, Return
 from BeautifulSoup import BeautifulSoup as BS
-from tornado.httpclient import HTTPRequest, AsyncHTTPClient
+from tornado.httpclient import HTTPRequest, AsyncHTTPClient, HTTPError
 
 '''
  url, method="GET", headers=None, body=None,
@@ -42,7 +43,7 @@ class Client:
     @coroutine
     def request(self, *args, **kwargs):
         """重试的时候需要用同步的方式 检测599的http code 这种状态代表为等待中"""
-        _args, _kwargs = map(copy, args, kwargs)  # 默认参数
+        _args, _kwargs = map(copy, (args, kwargs))  # 默认参数
         args = list(args)
         url = kwargs.pop("url", args.pop(0))
         headers = self.DEFAULT_HEADERS.copy()
@@ -52,13 +53,20 @@ class Client:
 
         data = kwargs.pop("body", None) or kwargs.pop("data", {})
         body = urlencode(data) if isinstance(data, DictType) else data
-
-        logger.debug("request: %s" % url)
-        response = yield self.async_client.fetch(
-            url, body=body, headers=headers, request_timeout=request_timeout, *args, **kwargs)
-        if response.code == 599:  # 599是taonado默认超时，需要重试
-            raise Return((yield self.request(*_args, **_kwargs)))
-        raise Return((response))
+        global x
+        for _ in range(5):  # 5次重试
+            try:
+                logger.debug("request: %s" % url)
+                response = yield self.async_client.fetch(
+                    url, body=body, headers=headers, request_timeout=request_timeout, *args, **kwargs)
+                raise Return((response))
+            except HTTPError, e:
+                if e.code == 599:  # 599是taonado默认超时，需要重试
+                    raise Return((yield self.request(*_args, **_kwargs)))
+                if e.code == 404:  # 404直接退出
+                    raise e
+                logger.error(format_exc())  # 其他错误重试
+        raise
 
     @coroutine
     def get_content(self, *args, **kwargs):
@@ -89,8 +97,11 @@ if __name__ == '__main__':
     @coroutine
     def test():
         url = "http://www.baidu.com"
-        r = yield Client().get_html_soup(url)
-        print r
+        r = yield Client().request(url)
+        print type(r), r.code
+        url = "http://collection.cp020.com/global/open/freq/127.js"
+        r = yield Client().request(url)
+        print type(r), r.code
 
 
     IOLoop.current().run_sync(test)
