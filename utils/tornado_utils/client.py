@@ -53,7 +53,6 @@ class Client:
 
         data = kwargs.pop("body", None) or kwargs.pop("data", {})
         body = urlencode(data) if isinstance(data, DictType) else data
-        global x
         for _ in range(5):  # 5次重试
             try:
                 logger.debug("request: %s" % url)
