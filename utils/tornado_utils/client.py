@@ -62,9 +62,10 @@ class Client:
             except HTTPError, e:
                 if e.code == 599:  # 599是taonado默认超时，需要重试
                     raise Return((yield self.request(*_args, **_kwargs)))
-                if e.code == 404:  # 404直接退出
-                    raise e
+                if e.code in (404, 500):  # 404 500 直接退出
+                    break
                 logger.error(format_exc())  # 其他错误重试
+        logger.error("Request %s Error, Code as [%d]." % (url, e.code))
         raise
 
     @coroutine
