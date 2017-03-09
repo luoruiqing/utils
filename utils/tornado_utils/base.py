@@ -1,5 +1,6 @@
 # coding:utf-8
 from __future__ import print_function
+from types import NoneType
 from functools import partial
 from tornado.gen import coroutine, Return
 from tornado.ioloop import IOLoop, PeriodicCallback
@@ -18,7 +19,9 @@ def tornado_run(function, *args, **kwargs):
     if _print:  # 打印返回结果
         @coroutine
         def async_print_result(func):
-            print((yield func()))
+            r = yield func()
+            if not isinstance(r, NoneType):
+                print(r)
 
         function = partial(async_print_result, func=function)
     IOLoop.current().run_sync(function, timeout=tornado_timeout)
