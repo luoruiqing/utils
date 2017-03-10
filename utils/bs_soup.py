@@ -3,8 +3,9 @@
  简单扩展BeautifulSoup,爬虫中经常会根据class和id去跑，通过这个方法能很简单的使用
  容错一些None的情况 例如.find().find().findAll() 都可以容错，直到结果为None
 """
-from BeautifulSoup import BeautifulSoup, Tag, BeautifulStoneSoup
+from types import ListType
 from functools import partial, wraps
+from BeautifulSoup import BeautifulSoup, Tag, BeautifulStoneSoup
 
 __str__ = lambda self: 'None'
 
@@ -22,6 +23,8 @@ def fault_tolerance_wrapper(func):
         # TODO args[1] 可能遇到下标越界问题，遇到了修改吧
         if result is None and args[1] != 'attrMap':
             return FTT()
+        if isinstance(result, ListType):
+            setattr(result, 'links', links)
         return result
 
     return wrapper
@@ -38,6 +41,12 @@ def findAll_class(self, class_name, tag_name=True):
 @property
 def links(self, removal=True):
     return set(a["href"] for a in self.findAll("a", {"href": True}))
+
+
+@property
+def texts(self):
+    """ 列表的形式返回列表内所有BS/TAG对象的文本 soup.findAll().texts """
+    return [soup.getText().strip() for soup in self]
 
 
 BeautifulSoup.find = fault_tolerance_wrapper(BeautifulSoup.find)
