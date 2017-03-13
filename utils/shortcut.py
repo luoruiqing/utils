@@ -37,6 +37,10 @@ def call_rself(method, *args, **kwargs):
     return getattr(method, '__self__') or getattr(method, 'im_self')
 
 
+# 是否可以迭代，字符型除外
+isiter = lambda object: True if isinstance(object, Iterable) and not isinstance(object, StringTypes) else False
+
+
 def default_property(func):
     """ 只执行一次的默认值方法，如果制造一个对象有很多个属性，都是执行一次的，那就写的太多了
     class A():
