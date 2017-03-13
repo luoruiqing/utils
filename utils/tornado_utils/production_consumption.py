@@ -5,22 +5,24 @@
 from tornado.queues import Queue
 from tornado.gen import coroutine
 from tornado.ioloop import IOLoop
+from logging import getLogger, DEBUG
 from abc import ABCMeta, abstractmethod
+
+logger = getLogger()
+logger.setLevel(DEBUG)
 
 
 class ProductionAndConsumptionTornado(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, queue_maxsize=1024, block=True, leaders=20):
+    def __init__(self, queue_maxsize=1024, headers=20):
         """
         :param queue_maxsize: 队列的长度
-        :param block: 是否阻塞，如果阻塞会直接执行
         :param leaders: 注册多少个循环回调
         """
         self.queue_maxsize = queue_maxsize
         self.queue = Queue(maxsize=self.queue_maxsize)
-        self.block = block
-        self.leaders = leaders
+        self.headers = headers
 
     @abstractmethod
     def producer(self):  # 子类实现
@@ -31,22 +33,24 @@ class ProductionAndConsumptionTornado(object):
         raise NotImplementedError()
 
     @coroutine
-    def _consumer(self):
+    def _consumer(self, handler_number=None):
+        logger.debug("%s start consumer." % handler_number)
         while True:
             item = yield self.queue.get()
             if item:
                 try:
-                    yield self.consumer(item=item)  # 同步执行 为了确认任务完成
+                    yield self.consumer(item)  # 同步执行 为了确认任务完成
                 finally:
                     self.queue.task_done()  # 表明任务完成
 
     @coroutine
     def start(self):
-        self.producer()  # 先执行一次
-        for _ in range(self.leaders):
-            self._consumer()
-        if self.block:
-            yield self.queue.join()
+        logger.debug("producer loading.")
+        self.producer()
+        logger.debug("consumer loading.")
+        for headers in range(self.headers):
+            self._consumer(headers)
+        logger.debug("loaded")
 
 
 if __name__ == '__main__':
@@ -78,7 +82,7 @@ if __name__ == '__main__':
 
 
     start, timeout_number, req_num = time(), 0, 10000
-    # IOLoop().current().add_callback(TornadoTest(leaders=100).start)
-    # IOLoop().current().start()
-    IOLoop().current().run_sync(TornadoTest().start)
+    instance = IOLoop().current()
+    instance.add_callback(TornadoTest(headers=100).start)
+    instance.start()
     print "请求%d次百度共用时" % req_num, time() - start, "超时链接并重试数量", timeout_number
