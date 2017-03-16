@@ -52,7 +52,7 @@ class P2CThread:
         self.threads = []
         Thread(target=self._producer).start()  # 启动一个生产者
         self.producing = True
-        for consumer_number in range(thread_num - 1):
+        for consumer_number in range(thread_num - 1 or 1):
             t = Thread(target=self._consumer)
             self.threads.append(t)
             t.start()  # 启动多个消费者
