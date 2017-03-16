@@ -47,7 +47,7 @@ class P2CThread:
             except Empty:
                 pass
 
-    def start(self, thread_num=30, queue_size=0):
+    def start(self, thread_num=8, queue_size=256):
         self.queue = Queue(queue_size)
         self.threads = []
         Thread(target=self._producer).start()  # 启动一个生产者
