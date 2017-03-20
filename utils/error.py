@@ -1,4 +1,5 @@
 # coding:utf-8
+from abc import ABCMeta
 from sys import exc_info
 from traceback import extract_tb
 
@@ -8,6 +9,45 @@ def get_error_info():
     exc_type, exc_reason, exc_tb = exc_info()
     file_path, line, func_name, err_line_content = extract_tb(exc_tb)[-1]
     return exc_type, exc_reason, file_path, line, func_name, err_line_content
+
+
+class ErrorManager:
+    """ 发生错误的另一种简洁的写法
+
+    class ErrorManagerDome(ErrorManager):
+        def _except(self):
+            print "error!"
+
+    ErrorManagerDome = ErrorManagerDome()
+    with ErrorManagerDome:
+        1 + "s"
+
+    """
+    __metaclass__ = ABCMeta
+    __enter__ = lambda self: self
+
+    def __init__(self, exc_types=Exception):
+        if issubclass(exc_types, BaseException):
+            exc_types = [exc_types]
+        self.exc_types = exc_types
+
+    def _except(self, *args, **kwargs):
+        """ 发生错误时候执行的方法 """
+
+    def _finally(self, *args, **kwargs):
+        """ 一定执行的方法 """
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # exc_val 是错误类 直接抛出 会把错误栈信息重新抛出
+        if exc_type:
+            if filter(lambda t: issubclass(exc_type, t), self.exc_types):
+                self._except()
+                return True  # 这个返回值会决定这个错误信息是否被输入到错误流
+            else:
+                try:
+                    raise exc_val
+                finally:
+                    self._finally()
 
 
 class Error(Exception):
