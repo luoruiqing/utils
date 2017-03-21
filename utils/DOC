@@ -80,27 +80,6 @@ methodcaller("decompose")(soup) 调用方法名字和参数传入实例
 
 # 断点续传 http
 
-# BeautifulSoup =====================================================================
-
-递归深度 recursive=False  例如find("div") 只查找子级别 不查找孙级别及以下的
-
-# 删除子dom
-dom = """
-<div class="crumbs">
-    <a href="http://video.duowan.com">多玩视频</a>
-    <i></i><a href="http://video.duowan.com/u/1434552658">虎牙视频</a>
-    <i></i>
-    提取字符串
-</div>
-
-"""
-soup = BeautifulSoup(dom)
-[s.extract() for s in soup(['a','i'])] # 都删除 并且会提高效率
-BeautifulSoup(html, parseOnlyThese=SoupStrainer('a', href=True)) # 只加载A标签 并且符合条件的
-
-soup.prettify() -> 格式化html
-soup.getText() ->提取字符串
-soup.decompose() 删除所有子节点，保留当前节点
 # 汉字转拼音的库 xpinyin
 
 
