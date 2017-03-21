@@ -2,6 +2,26 @@
 """
  简单扩展BeautifulSoup,爬虫中经常会根据class和id去跑，通过这个方法能很简单的使用
  容错一些None的情况 例如.find().find().findAll() 都可以容错，直到结果为None
+ 递归深度 recursive=False  例如find("div") 只查找子级别 不查找孙级别及以下的
+
+===================================笔记==========================================
+
+    # 删除子dom
+    dom = '<div class="crumbs">
+            <a href="http://video.duowan.com">多玩视频</a>
+            <i></i><a href="http://video.duowan.com/u/1434552658">虎牙视频</a>
+            <i></i>提取字符串
+           </div>'
+    soup = BeautifulSoup(dom)
+    [s.extract() for s in soup(['a','i'])] # 都删除 并且会提高效率
+    BeautifulSoup(html, parseOnlyThese=SoupStrainer('a', href=True)) # 只加载A标签 并且符合条件的
+
+    soup.prettify() -> 格式化html
+    soup.decompose() 删除所有子节点，保留当前节点
+
+=================================================================================
+
+
 """
 from types import ListType
 from functools import partial, wraps
