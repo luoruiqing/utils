@@ -10,13 +10,6 @@ logger.setLevel(DEBUG)
 
 
 def subprocess_cmd(command, *args, **kwargs):
-    """ subprocess_cmd("ping 8.8.8.8") """
-    logger.debug('process cmd: %s' % command)
-    process = subprocess_popen(command, *args, **kwargs)
-    return process.stdout.read().strip() or process.stderr.read()
-
-
-def subprocess_cmd_noblock(command, *args, **kwargs):
     """ 这个方法会返回迭代器，一边读一边返回
     for row in subprocess_cmd_noblock("ping 8.8.8.8"):
         print row,
