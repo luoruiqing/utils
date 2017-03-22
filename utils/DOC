@@ -19,6 +19,11 @@
 | 但如果是break结束 则不执行                                                       |
 --------------------------------------------------------------------------------
 
+# "True" if 1 else "False"
+1 and "True" or "False"
+0 and "True" or "False"
+
+
 # 商和余数同时得到 divmod()
 
 # from sys import getrefcount
