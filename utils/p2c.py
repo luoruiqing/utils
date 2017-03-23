@@ -2,7 +2,6 @@
 """
     生产消费模型，且是固定数量的线程执行
 """
-
 from Queue import Queue, Empty
 from logging import getLogger, DEBUG
 from abc import ABCMeta, abstractmethod
@@ -25,7 +24,7 @@ class P2CThread:
     def _producer(self):
         thread_name = current_thread().name
         logger.debug("%s producer start work." % thread_name)
-        for item in self.producer():
+        for item in self.producer() or []:
             logger.info("add %s to queue", str(item))
             self.queue.put(item)
         self.producing = False
@@ -52,7 +51,7 @@ class P2CThread:
         self.threads = []
         Thread(target=self._producer).start()  # 启动一个生产者
         self.producing = True
-        for consumer_number in range(thread_num - 1 or 1):
+        for consumer_number in range(thread_num - 1 or 1):  # 至少双线程
             t = Thread(target=self._consumer)
             self.threads.append(t)
             t.start()  # 启动多个消费者
