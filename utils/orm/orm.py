@@ -1,45 +1,120 @@
 # coding:utf-8
 
 from functools import partial
-
+from copy import copy
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 
-def gen_create_table(model_attr):
-    print dir(model_attr)
-    charset = getattr(model_attr, "__charset__")
-    engine = getattr(model_attr, "__engine__")
-    ain = getattr(model_attr, "__auto_increment_number__")
-    table_name = getattr(model_attr, "__table__")
-    table_comment = getattr(model_attr, "__comment__") or ''
+class CreateTable:
+    def __init__(self, model_class):
+        self.charset = getattr(model_class, "__charset__")
+        self.engine = getattr(model_class, "__engine__")
+        self.ain = getattr(model_class, "__auto_increment_number__")
+        self.table_name = getattr(model_class, "__table__")
+        self.table_comment = getattr(model_class, "__comment__") or ''
+        self.model_attr = model_class
 
-    def get_comment(comment=None):
-        return "COMMENT \'%s\'" % comment if comment else "COMMENT \'\'"
-
-    def get_fields(item):
+    def get_field_sql(self, item):
         name, field = item
-        length = "(%s)" % field.length if field.length else  ""
-        null = field.nullable and "DEFAULT NULL" or "NOT NULL"
-        ain = field.autoincrement and "AUTO_INCREMENT" or ""
-        pk = field.primary_key and "PRIMARY KEY" or ""
-        unique = "UNIQUE" if not pk and field.unique else ""
-        comment = get_comment(field.comment)
+        length = self.get_length(field)
+        null = self.get_null(field)
+        ain = self.get_auto_increment(field.autoincrement)
+        pk = self.get_primary_key(field)
+        unique = self.get_unique(field)
+        comment = self.get_comment(field.comment)
         return " ".join(filter(bool, [name, field.type, length, null, ain, unique, pk, comment]))
 
-    mps = getattr(model_attr, "__mappings__", {})
-    fields = map(get_fields, sorted(mps.iteritems(), key=lambda item: item[1]._order))
-    return "CREATE TABLE `%s` (\n%s\n) ENGINE=%s AUTO_INCREMENT=%d DEFAULT CHARSET=%s %s;" % (
-        table_name, ",\n".join(fields), engine, ain, charset, get_comment(table_comment))
+    @staticmethod
+    def get_length(field):
+        return "(%s)" % field.length if field.length else  ""
+
+    @staticmethod
+    def get_null(field):
+        return field.nullable and "DEFAULT NULL" or "NOT NULL"
+
+    @staticmethod
+    def get_primary_key(field):
+        return field.primary_key and "PRIMARY KEY" or ""
+
+    @staticmethod
+    def get_unique(field, primary_key=False):
+        return "UNIQUE" if not primary_key and field.unique else ""
+
+    @staticmethod
+    def get_auto_increment(autoincrement=False, start=None):
+        if autoincrement:
+            f = start and "=%s" % start or ""
+            return "AUTO_INCREMENT" + f
+        return ""
+
+    @staticmethod
+    def get_comment(comment):
+        return "COMMENT \'%s\'" % comment if comment else ""
+
+    @staticmethod
+    def get_engine(engine=None):
+        return engine and "ENGINE=%s" % engine or ""
+
+    @property
+    def sql(self):
+        mps = getattr(self.model_attr, "__mappings__", {})
+        fields = map(self.get_field_sql, sorted(mps.iteritems(), key=lambda item: item[1]._order))
+        return "CREATE TABLE `%s` (\n%s\n) %s %s %s %s;" % (
+            self.table_name, ",\n".join(fields),
+            self.get_engine(self.engine),
+            self.ain and self.get_auto_increment(True, start=self.ain),
+            self.charset and "DEFAULT CHARSET=%s" % self.charset,
+            self.get_comment(self.table_comment))
 
 
-def contrast(symbols):
+class Logic:  # 逻辑
+    operator = None
+
+    def __init__(self, contrast):
+        self.contrast = contrast
+
+
+class AND:
+    operator = "AND"
+
+    def __init__(self, contrast):
+        self.contrast = contrast
+
+
+class OR:  # 逻辑
+    operator = "OR"
+
+    def __init__(self, contrast):
+        self.contrast = contrast
+
+
+def create_contrast(symbols):
     def _wrapper(self, other):
-        self.symbols.append(symbols)
-        self.contrast.append(other)
-        print self.symbols, self.contrast
-        return self
+        return Contrast(self, symbols, other)
 
     return _wrapper
+
+
+class SQLObject():
+    def __init__(self, sql, params, *args):
+        self.sql = sql.replace("?", "%s")
+        self.params = params
+        self.args = args
+
+    def commit(self):
+        pass
+
+    def __str__(self):
+        return self.sql % self.params
+
+
+class Contrast:
+    """第一个直接返回比较对象 只能俩个对象比较 不可以(!) a < b < c  """
+
+    def __init__(self, left, symbols, right):
+        self.left = left
+        self.symbols = symbols
+        self.right = right
 
 
 class Field(object):
@@ -61,27 +136,23 @@ class Field(object):
         self.comment = comment  # 备注
         self.unique = unique  # 是否约束唯一/去除重复
 
-        self.contrast = []  # 比较运算符
-        self.symbols = []
+        self.contrast = []  # 比较对象
+        self.symbols = []  # 比较运算符
 
         self._order = Field._order
         Field._order += 1
+
+    __gt__ = create_contrast(">")  # 大于
+    __ge__ = create_contrast(">=")  # 大于等于
+    __lt__ = create_contrast("<")  # 小于
+    __le__ = create_contrast("<=")  # 小于等于
+    __eq__ = create_contrast("=")  # 等于 ==
+    __ne__ = create_contrast("!=")  # 不等于
 
     @property
     def type_str(self):
         length = ("(%d)" % self.length) if self.length is not None else ""
         return self.type + length
-
-    # def __eq__(self, field):  # 全等于是连接表或者对比
-    #     if isinstance(field, Field):
-    #         return setattr(field, "left", self) or field
-    #     return ("==", field)
-    __gt__ = contrast(">")  # 大于
-    __ge__ = contrast(">=")  # 大于等于
-    __lt__ = contrast("<")  # 小于
-    __le__ = contrast("<=")  # 小于等于
-    __eq__ = contrast("=")  # 等于 ==
-    __ne__ = contrast("!=")  # 不等于
 
     def __str__(self):
         pk, ai, uq = self.primary_key and "PK", self.autoincrement and "AI", self.unique and "QU"
@@ -123,10 +194,16 @@ class DateTimeField(Field):
     type = "DATETIME"
 
 
+
+
+
 class ModelMetaClass(type):
+    cache = {}  # 缓存常用查询
+
     def __new__(cls, name, bases, attr):
         if name in ("Model", "Join"):  # 元类的new方法是个循环方法 由上至下，每个含有或被继承的类都会执行
             return type.__new__(cls, name, bases, attr)  # 使用基类的new方法生产默认类
+        cls.subclasses = getattr(cls, 'subclasses', {})
 
         mappings = dict()
         primary_key = None
@@ -139,12 +216,24 @@ class ModelMetaClass(type):
                     v.nullable = False
                     v.unique = False  # 兼容创建表
                 mappings[k] = v
-        # [attr.pop(k) for k in mappings.keys()]
+
+        # [attr.pop(k, None) for k in mappings.keys()]
         attr["__table__"] = attr.get("__table__") or name.lower()
         attr["__primary_key__"] = primary_key
         attr["__mappings__"] = mappings
-        attr["__create__"] = classmethod(gen_create_table)
+        attr["__create__"] = classmethod(lambda cls: CreateTable(cls))
+        cls.subclasses.setdefault(name, mappings)  # 收集绑定关系
         return type.__new__(cls, name, bases, attr)
+
+    @classmethod
+    def get_fieldname(cls, instance):
+        r = cls.cache.get(instance)
+        if not r:
+            for name, attr in cls.subclasses.iteritems():
+                for field_name, field_instance in attr.iteritems():
+                    print instance, field_instance
+                    # if instance is field_instance:
+                    #     print instance,'<<<<<<<<<<<'
 
 
 class Model(dict):  # TODO 应该添加更多特性
@@ -163,23 +252,30 @@ class Model(dict):  # TODO 应该添加更多特性
     def __setattr__(self, key, value):
         self[key] = value
 
-    # @classmethod
-    # def find(cls):  # 未实例化可以直接查询 其他都无需实例化
-    #     return "SELECT * FROM %s" % cls.__table__
-
-    def add(self):
+    def insert(self):
         (keys, values) = zip(*self.iteritems()) if self else ([], [])
         sql = "INSERT INFO %s (%s) VALUE (%s);" % (self.__table__, ",".join(keys), ",".join(["%s"] * len(keys)))
-        return sql
+        return sql, values
 
     @classmethod
-    def find(cls, *args, **kwargs):  # 直接返回
-        where = ""
-        for arg in args:
-            print zip(*(arg.contrast, arg.symbols))
-            # print "@", arg.contrast  # 比较运算符
-            # print "@", arg.symbols  # 比较运算符
+    def select(cls, *contrasts):  # 直接返回
+        sql = "SELECT * FROM %s "
+        if contrasts:
+            sql += "WHERE "
+            for c in contrasts:
+                if isinstance(c, Contrast):
+                    l, s, r = c.left, c.symbols, c.right
+                    ModelMetaClass.get_fieldname(l)
+                    # print ModelMetaClass.get_fieldname(c), "1"
+                    # if isinstance(l, Field):
+                    #     print l, '<<<<<<<<'
+                    # print "@", arg.contrast  # 比较运算符
+                    # print "@", arg.symbols  # 比较运算符
         print cls.__create__()
+
+    @classmethod
+    def filter_one(self):
+        pass
         # "" % arg.iteritems()
         # where +=
 
@@ -224,27 +320,27 @@ class D(Model):
     id = Integet(primary_key=True, autoincrement=True)
 
 
-print User.id, Company.id, D.id
+# UserCompany(User.id == 15, Company.id == 1)  # 查询用户ID是15同时公司ID是1的记录
 
-
-# UserCompany(User.id=15,Company.id=1) # 查询用户ID是15同时公司ID是1的记录
 
 class DomeDB():
     pass
 
 
-print 1 > Integet <= 5, "@@@@@@@@1"
-
 if __name__ == "__main__":
+    pass
     # user = User(id=1)
     # print user, "<<<<<"
     # print user.id
     # print user.get("name")
     # print user.__sql__
     # print user
+    print ModelMetaClass.subclasses, '<<<<<<<'
+    print User(name="luoruiqing", age=22).insert()
+    User.select(1 < User.id, User.age == 22)
     # User((name == "luoruiqing" & age == 15 or 1)).add()  # 插入一个对象
-    User.find(1 < User.id <= 5, User.age == 22)
-    print User(name="luoruiqing", age=15).add()
+    # User.find(1 < User.id <= 5, User.age == 22)
+    # print User(name="luoruiqing", age=15).add()
     # User(name="luoruiqing", age=15).setdefault(name="luoruiqing").commit()  # 设置一个默认对象 如果name=luoruiqing 不存在
     # User.setdefault(WHERE(name="luoruiqing"), User(name="luoruiqing", age=15))  # 设置一个默认对象 如果name=luoruiqing 不存在
 
