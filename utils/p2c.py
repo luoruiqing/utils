@@ -24,10 +24,14 @@ class P2CThread:
     def _producer(self):
         thread_name = current_thread().name
         logger.debug("%s producer start work." % thread_name)
-        for item in self.producer() or []:
-            logger.info("add %s to queue", str(item))
-            self.queue.put(item)
-        self.producing = False
+        try:
+            for item in self.producer() or []:
+                logger.info("add %s to queue", str(item))
+                self.queue.put(item)
+        except:
+            raise
+        finally:
+            self.producing = False
         logger.debug("%s producer end work." % thread_name)
 
     @abstractmethod
