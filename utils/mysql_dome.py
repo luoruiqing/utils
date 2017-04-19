@@ -5,6 +5,21 @@ cur.fetchall() # 获得所有结果
 cur.fetchmany() # 获得条数结果  [cur.arraysize 是默认值]
 cur.fetchone() # 获得第一条
 cur.lastrowid # 插入的上条记录的ID
+cur.description # 执行查询后 结果集内的keys就是这个
+    # if cursor.description:
+    #    names = [x[0] for x in cursor.description]
+# ===========================================================
+MysqlResult对象
+    affected_rows = None
+    insert_id = None
+    server_status = None
+    warning_count = 0
+    message = None
+    field_count = 0
+    description = None
+    rows = None
+# ===========================================================
+cur.rowcount # 执行查询后记录的条数
 cur._last_executed # 插入时生成的SQL语句
 conn.cursor() # 开启一个游标 可以传入一个游标类 例如:DictCursor
 conn.commit() # 提交
