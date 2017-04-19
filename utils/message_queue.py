@@ -19,14 +19,13 @@ class ClosingContextManager(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def close(self):
+    def close(self, *args, **kwargs):
         raise NotImplementedError()
 
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
-        self.close()
+    __del__ = __exit__ = lambda self, *args, **kwargs: self.close()
 
 
 class Message(str):
@@ -81,13 +80,27 @@ class MessageQueueManager(ClosingContextManager):
         self.surplus = None  # 剩余的个数
         self.connect()  # 第一次进入便是死循环
 
-    def get(self):
+    def get_noack(self):
         # no_ack 为 True 拉取消息后服务端直接删除不需要确认
         return self._get(no_ack=True)[2]
 
-    def get_message(self):
+    get = get_noack
+
+    def get_ack(self):
         method_sig, _, body = self._get(no_ack=False)  # properties
         return Message(body, self.channel, method_sig)
+
+    def _get(self, no_ack):
+        # no_ack 为 True 拉取消息后服务端直接删除不需要确认
+        logger.debug("Getting message...")
+        while True:
+            method_sig, properties, body = self.channel.basic_get(queue=self.queue_name, no_ack=no_ack)
+            self.surplus = method_sig.message_count
+            if body:
+                return method_sig, properties, body
+            else:
+                logger.debug("Queue is empty. sleep 5s.")
+                sleep(self.interval)
 
     def send(self, message):
         logger.debug("Sending message %s..." % message)
@@ -103,7 +116,10 @@ class MessageQueueManager(ClosingContextManager):
                 if retry >= 3:
                     raise e
 
+    put = send
+
     def connect(self, timeout=10, interval=5):
+        logger.info("Connecting to mq server...")
         while True:
             try:
                 self.conn = BlockingConnection(ConnectionParameters(
@@ -120,19 +136,8 @@ class MessageQueueManager(ClosingContextManager):
         if self.temporary:  # 临时队列 删除
             # self.channel.queue_delete(self.queue)
             self.channel.exchange_delete(self.exchange_name)  # 必须删除路由
+        self._channel.close()
         self.conn.close()
-
-    def _get(self, no_ack):
-        # no_ack 为 True 拉取消息后服务端直接删除不需要确认
-        logger.debug("Getting message...")
-        while True:
-            method_sig, properties, body = self.channel.basic_get(queue=self.queue_name, no_ack=no_ack)
-            self.surplus = method_sig.message_count
-            if body:
-                return method_sig, properties, body
-            else:
-                logger.debug("Queue is empty. sleep 5s.")
-                sleep(self.interval)
 
     @property
     def channel(self):
@@ -184,6 +189,3 @@ def send_one_msg(host, username, password, exchange, routing_key=None, msg=None,
 
 
 MQ = MessageQueueManager
-
-if __name__ == '__main__':
-    pass
