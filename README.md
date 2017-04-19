@@ -28,8 +28,9 @@
 ```
  各种小工具
 ```
-
-
+from concurrent import futures
+with futures.ThreadPoolExecutor(max_workers=10) as executor:
+            for result in list(executor.map(self.anchor_info, self.anchor_ids)):
 
 #我的笔记
 ##-swiper
