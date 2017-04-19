@@ -91,7 +91,7 @@ function copy(source) {
 }
 function getSettings(data) {
     return {
-        "url": data.url,
+        "url": encodeURI(data.url),
         render: data.render || false, // 是否渲染
         renderingTime: data.renderingTime || 0, //  渲染保留时间(毫秒)
         snapshot: data.snapshot || false, //是否截图,将在渲染后截图
@@ -178,37 +178,37 @@ function Server(port) {
                     "time": new Date() - start,
                     "settings": settings,
 
-                    "objectName": page.objectName,
-                    "frameTitle": page.frameTitle,
+                    //"objectName": page.objectName,
+                    //"frameTitle": page.frameTitle,
                     "content": page.content,
-                    "frameContent": page.frameContent,
-                    "frameUrl": page.frameUrl,
+                    //"frameContent": page.frameContent,
+                    //"frameUrl": page.frameUrl,
                     "loading": page.loading,
                     "loadingProgress": page.loadingProgress,
                     "canGoBack": page.canGoBack,
                     "canGoForward": page.canGoForward,
-                    "plainText": page.plainText,
-                    "framePlainText": page.framePlainText,
+                    //"plainText": page.plainText,
+                    //"framePlainText": page.framePlainText,
                     "libraryPath": page.libraryPath,
-                    "offlineStoragePath": page.offlineStoragePath,
-                    "offlineStorageQuota": page.offlineStorageQuota,
+                    //"offlineStoragePath": page.offlineStoragePath,
+                    //"offlineStorageQuota": page.offlineStorageQuota,
                     "viewportSize": page.viewportSize,
                     "paperSize": page.paperSize,
                     "clipRect": page.clipRect,
                     "scrollPosition": page.scrollPosition,
                     "navigationLocked": page.navigationLocked,
                     "customHeaders": page.customHeaders,
-                    "zoomFactor": page.zoomFactor,
+                    //"zoomFactor": page.zoomFactor,
                     "cookies": page.cookies,
                     "windowName": page.windowName,
                     "pages": page.pages,
                     "pagesWindowName": page.pagesWindowName,
                     "ownsPages": page.ownsPages,
-                    "framesName": page.framesName,
-                    "frameName": page.frameName,
+                    //"framesName": page.framesName,
+                    //"frameName": page.frameName,
                     "framesCount": page.framesCount,
                     "focusedFrameName": page.focusedFrameName,
-                    "cookieJar": page.cookieJar
+                    //"cookieJar": page.cookieJar
                 }));
                 response.close();
                 page.close();
@@ -226,7 +226,7 @@ function Server(port) {
 
 function dir(object) {
     for (var item in object) {
-        console.log(item)//+ "\t" + object[item])
+        console.log(item); //+ "\t" + object[item])
     }
 }
 
