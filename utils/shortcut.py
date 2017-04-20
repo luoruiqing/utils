@@ -21,6 +21,16 @@ py2 = version_info[0] == 2
 py3 = not py2
 
 
+def nexter(func):
+    """ 全局单次迭代器
+    @nexter
+    def iter_item():
+        for item in range(5):yield item
+    for item in iter_item:print item
+    """
+    return func()
+
+
 # ====================================== 方法 Methods ============================================
 def closed_eval(eval_py="", must_vars=None):
     """ eval_py执行的语句 must_vars 需要使用的变量 """
