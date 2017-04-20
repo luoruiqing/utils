@@ -1,5 +1,13 @@
 "use strict";
 // phantom 全局变量
+function getDatetime() {
+    var dt = new Date();
+    return (dt.getFullYear() + '-' + (dt.getMonth() + 1) + '-' + dt.getDate() + ' ' + dt.getHours() + ':' + dt.getMinutes() + ':' + dt.getSeconds()).replace(/([\-\: ])(\d{1})(?!\d)/g, '$10$2');
+}
+console.debug = function (string) {
+    console.log("[DEBUG - " + getDatetime(new Date()) + "] " + string
+    )
+};
 var driver = require('webpage'), server = require('webserver').create(), system = require('system'), auth = "luoruiqing";
 var agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1623.0 Safari/537.36';
 var port, defaultJsScript = "function () {return null}", defaultHeaders = {
@@ -140,7 +148,14 @@ function Server(port) {
 
         // -------------------------------------------------------------------------------------
 
-        var page = driver.create();
+        var page = driver.create(), changedUrls = [], alertMessages = [];
+        page.onUrlChanged = function (newUrl) {
+            changedUrls.push(newUrl);
+            console.debug("redirect to " + newUrl + ".");
+        };
+        page.onAlert = function (msg) {
+            alertMessages.push(msg);
+        };
         page.clearCookies(); // 清除 COOKIES
         page.customHeaders = settings.headers;  // HTTP头
         page.settings = settings.pageSettings;
@@ -165,11 +180,12 @@ function Server(port) {
             setTimeout(function () {
                 if (settings.snapshot) {
                     console.debug("Screen snapshot capturing...");
+                    var start = new Date();
                     page.render('test.jpeg', {format: 'jpeg', quality: '100'});
+                    console.debug("Screen snapshot capture done [" + (new Date() - start) + "ms].");
                 }
                 response.statusCode = 200;
                 response.headers = {"Cache": "no-cache", "Content-Type": "application/json"};
-                dir(page);
                 response.write(JSON.stringify({
                     "url": page.url,
                     "title": page.title,
@@ -177,10 +193,11 @@ function Server(port) {
                     "scriptResult": scriptResult,
                     "time": new Date() - start,
                     "settings": settings,
-
+                    "changedUrls": changedUrls,
+                    "alertMessage": alertMessage,
                     //"objectName": page.objectName,
                     //"frameTitle": page.frameTitle,
-                    "content": page.content,
+                    //"content": page.content,
                     //"frameContent": page.frameContent,
                     //"frameUrl": page.frameUrl,
                     "loading": page.loading,
@@ -212,7 +229,7 @@ function Server(port) {
                 }));
                 response.close();
                 page.close();
-                console.debug("request " + settings.url + " done.")
+                console.debug("request " + settings.url + " done [" + (new Date() - start) + "ms].")
             }, settings.renderingTime);
         });
 
