@@ -1,6 +1,4 @@
 # coding=utf-8
-from __future__ import unicode_literals
-
 '''
 command: # 浏览器API接口命令列表
     status, newSession, getAllSessions, deleteSession, close, quit, get, goBack, goForward, refresh, addCookie, getCookie, getCookies, deleteCookie, deleteAllCookies, findElement, findElements, findChildElement, findChildElements, clearElement, clickElement, sendKeysToElement, sendKeysToActiveElement, submitElement, uploadFile, getCurrentWindowHandle, getWindowHandles, getWindowSize, w3cGetWindowSize, getWindowPosition, setWindowSize, w3cSetWindowSize, setWindowPosition, switchToWindow, switchToFrame, switchToParentFrame, getActiveElement, getCurrentUrl, getPageSource, getTitle, executeScript, getElementText, getElementValue, getElementTagName, setElementSelected, isElementSelected, isElementEnabled, isElementDisplayed, getElementLocation, getElementLocationOnceScrolledIntoView, getElementSize, getElementRect, getElementAttribute, getElementValueOfCssProperty, elementEquals, screenshot, elementScreenshot, implicitlyWait, executeAsyncScript, setScriptTimeout, setTimeouts, windowMaximize, w3cMaximizeWindow, getLog, getAvailableLogTypes, dismissAlert, acceptAlert, setAlertValue, getAlertText, setAlertCredentials, mouseClick, mouseDoubleClick, mouseButtonDown, mouseButtonUp, mouseMoveTo, setScreenOrientation, getScreenOrientation, touchSingleTap, touchDown, touchUp, touchMove, touchScroll, touchDoubleTap, touchLongPress, touchFlick, executeSql, getLocation, setLocation, getAppCache, getAppCacheStatus, clearAppCache, getLocalStorageItem, removeLocalStorageItem, getLocalStorageKeys, setLocalStorageItem, clearLocalStorage, getLocalStorageSize, getSessionStorageItem, removeSessionStorageItem, getSessionStorageKeys, setSessionStorageItem, clearSessionStorage, getSessionStorageSize, getNetworkConnection, setNetworkConnection, getCurrentContextHandle, getContextHandles, switchToContext
@@ -168,7 +166,7 @@ except ImportError:
 
 logger = getLogger()
 logger.setLevel(DEBUG)
-DEFAULT_VALUE = type('DEFAULT_VALUE', tuple(object, ), {})
+DEFAULT_VALUE = type('DEFAULT_VALUE', tuple([object, ]), {})
 
 
 def retry(error=Exception, default=DEFAULT_VALUE, retry_number=3, retry_interval=0):
@@ -221,3 +219,10 @@ def element_screen_shot(deriver, image_source, file_path, save=True):
     if save:
         image.save(file_path)  # 保存
     return image
+
+
+if __name__ == '__main__':
+    driver = PhantomJS()
+    driver.get("http://www.baidu.com")
+    print driver.current_url
+    print driver.title
