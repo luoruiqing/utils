@@ -1,8 +1,11 @@
 # coding:utf-8
 from re import compile
 from recode import recoding
+from HTMLParser import HTMLParser
 
 number_regex = compile(r"([\d\.]+)")
+
+unescape = HTMLParser().unescape  # HTML 转义
 
 
 def convert_number(string):

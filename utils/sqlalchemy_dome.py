@@ -10,7 +10,7 @@ sqlacodegen:
 
 
 """
-
+from __future__ import unicode_literals
 from subprocess import Popen, PIPE
 from logging import getLogger, DEBUG
 from sqlalchemy.orm import sessionmaker
@@ -20,7 +20,6 @@ logger = getLogger()
 logger.setLevel(DEBUG)
 
 template = '//{user}:{password}@{host}:{port}/{database}'
-config = dict(host="127.0.0.1", port=3306, database="test", user="root", password="123456", charset="utf8")
 generate_head = "sqlacodegen --noviews --noconstraints --noindexes "
 get_session = lambda **config: sessionmaker(bind=create_engine("mysql+mysqlconnector:" + template.format(**config)))
 
@@ -35,9 +34,9 @@ def model_generate(**config):
     return Popen(command, stdout=PIPE).stdout.read()
 
 
-
 if __name__ == '__main__':
     from logging import basicConfig
 
+    config = dict(host="127.0.0.1", port=3306, database="invest", user="root", password="123456", charset="utf8")
     basicConfig()
     print model_generate(**config)
