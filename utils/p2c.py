@@ -16,6 +16,9 @@ class P2CThread:
         1个生产者对应多个消费者
     """
     __metaclass__ = ABCMeta
+    thread_num = 8
+    queue_size = 256
+    queue_timeout = 1
 
     @abstractmethod
     def producer(self, *args, **kwargs):
@@ -43,14 +46,14 @@ class P2CThread:
         logger.debug("%s start consume." % thread_name)
         while self.producing or self.queue.qsize() > 0:
             try:
-                item = self.queue.get(timeout=1)
+                item = self.queue.get(timeout=self.queue_timeout)
                 logger.debug("%s start handle %s.", thread_name, str(item))
                 self.consumer(item)
                 logger.debug("%s end handle %s.", thread_name, str(item))
             except Empty:
                 pass
 
-    def start(self, thread_num=8, queue_size=256):
+    def start(self, thread_num=thread_num, queue_size=queue_size):
         self.queue = Queue(queue_size)
         self.threads = []
         Thread(target=self._producer).start()  # 启动一个生产者
