@@ -30,17 +30,16 @@ def setdefault__str__():
     a.py
         class Tag(Base):
             __tablename__ = 'tags'
-
             name = Column(String(255), nullable=False)
         print Tag(name="luoruiqing") ->  <invest.tools.database.model.Tag object at 0x03BAFD10>
     b.py
-        from a import Tag
         setdefault__str__()
+        from a import Tag
         print Tag(name="luoruiqing") ->   {"name": "luoruiqing"}
     """
     try:
         from model import Base
-    except:
+    except ImportError:
         return False
     from copy import copy
     from json import dumps
