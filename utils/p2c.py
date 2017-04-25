@@ -68,9 +68,11 @@ class P2CThread:
         for t in self.threads:
             t.join()
         logger.debug("End all work and quit.")
+        return self
 
     def pause(self, status=True):
         raise NotImplementedError()
+        return self
 
 
 if __name__ == '__main__':
