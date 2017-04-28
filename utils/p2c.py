@@ -3,6 +3,7 @@
     生产消费模型，且是固定数量的线程执行
 """
 from Queue import Queue, Empty
+from traceback import format_exc
 from logging import getLogger, DEBUG
 from abc import ABCMeta, abstractmethod
 from threading import Thread, current_thread
@@ -49,9 +50,12 @@ class P2CThread:
                 item = self.queue.get(timeout=self.queue_timeout)
                 logger.debug("%s start handle %s.", thread_name, str(item))
                 self.consumer(item)
-                logger.debug("%s end handle %s.", thread_name, str(item))
-            except Empty:
+            except Empty:  # 队列空忽略
                 pass
+            # except:  # 其他错误 忽略
+            #     logger.error(format_exc())
+            else:
+                logger.debug("%s end handle %s.", thread_name, str(item))
 
     def start(self, thread_num=thread_num, queue_size=queue_size):
         self.queue = Queue(queue_size)
