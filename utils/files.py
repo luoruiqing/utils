@@ -3,7 +3,7 @@
 from glob import glob
 from random import sample
 from collections import Iterable
-from os import path, remove, makedirs
+from os import path as os_path, remove, makedirs
 from types import IntType, LongType, FloatType, StringTypes
 
 NumberType = (IntType, LongType, FloatType)
@@ -28,13 +28,12 @@ def to_items(item, type=tuple):
 def ensure_path(path):  # 可以优化
     #  os.path.isdir(path)  os.path.isfile(path):
     """ 路径不存在 自动创建路径 """
-    file_name, (path, ext) = '', path.splitext(path)  # 剥离ext
+    file_name, (path, ext) = '', os_path.splitext(path)  # 剥离ext
     if ext:  # ext存在 剥离文件名
-        path, file_name = path.split(path)
-
-    if not path.exists(path):
+        path, file_name = os_path.split(path)
+    if not os_path.exists(path):
         makedirs(path)
-    return path.join(path, file_name + ext)
+    return os_path.join(path, file_name + ext)
 
 
 def remove_files_by_ext(pattern="*.pyc"):
