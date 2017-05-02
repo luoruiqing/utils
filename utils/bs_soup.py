@@ -31,9 +31,9 @@ __str__ = lambda self: 'None'
 
 # 用来兼容的Tag 例: (soup.find(*) or FTT()).findAll(*)
 FaultToleranceTag = type('FaultToleranceTag', (Tag,), {'__str__': __str__, "__repr__": __str__})
-FaultToleranceTag = partial(FaultToleranceTag, BeautifulStoneSoup(), '')
+CreateFaultToleranceTag = partial(FaultToleranceTag, BeautifulStoneSoup(), '')
 
-FTT = FaultToleranceTag
+FTT = CreateFaultToleranceTag()  # 这里使用一个实例会节省一点开销
 
 
 def fault_tolerance_wrapper(func):
@@ -42,7 +42,7 @@ def fault_tolerance_wrapper(func):
         result = func(*args, **kwargs)
         # TODO args[1] 可能遇到下标越界问题，遇到了修改吧
         if result is None and args[1] != 'attrMap':
-            return FTT()
+            return FTT
         if isinstance(result, ListType):
             setattr(result, 'links', links)
         return result
