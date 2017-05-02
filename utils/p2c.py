@@ -32,8 +32,6 @@ class P2CThread:
             for item in self.producer() or []:
                 logger.info("add %s to queue", str(item))
                 self.queue.put(item)
-        except:
-            raise
         finally:
             self.producing = False
         logger.debug("%s producer end work." % thread_name)
