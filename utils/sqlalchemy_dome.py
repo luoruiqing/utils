@@ -19,7 +19,7 @@ from sqlalchemy.engine import create_engine
 logger = getLogger()
 logger.setLevel(DEBUG)
 
-template = '//{user}:{password}@{host}:{port}/{database}'
+template = '//{user}:{password}@{host}:{port}/{database}?charset={charset}'
 generate_head = "sqlacodegen --noviews --noconstraints --noindexes "
 get_session = lambda **config: sessionmaker(bind=create_engine("mysql+mysqlconnector:" + template.format(**config)))
 
