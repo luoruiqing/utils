@@ -15,10 +15,19 @@ from types import IntType, LongType, FloatType, StringTypes, MethodType, Unbound
 DefaultFunc = lambda item: item
 NumberType = (IntType, LongType, FloatType)
 MethodType = (MethodType, UnboundMethodType, BuiltinMethodType)
-ReservedNumbersFunc = lambda item: isinstance(item, NumberType) or item  # 保留数字
 
 py2 = version_info[0] == 2
 py3 = not py2
+
+
+def nexter(func):
+    """ 全局单次迭代器
+    @nexter
+    def iter_item():
+        for item in range(5):yield item
+    for item in iter_item:print item
+    """
+    return func()
 
 
 # ====================================== 方法 Methods ============================================
@@ -135,21 +144,21 @@ def replaces(str, **kwargs):
 
 
 
-def filter_one(function, sequence, default=None):
+def filter_one(function=None, sequence=(), default=None):
     """ 只获得一个满足条件的数据 """
     if not hasattr(function, "__call__"):
         function = bool
     return next((item for item in sequence if function(item)), default)  # 这里很高级 (...for...) 居然是生成器
 
 
+ReservedNumbersFunc = lambda item: isinstance(item, NumberType) or item  # 保留数字
 filter_reserved_number = partial(filter, ReservedNumbersFunc)  # filter_reserved_number([0, True, 2, 3])
 
 filter_one_reserved_number = partial(filter_one, ReservedNumbersFunc)  # 很多情况下的0也是要的  不是过滤掉
 
-f = filter
 fn = filter_reserved_number
-fo = filter_one
-fon = filter_one_reserved_number
+f1 = filter_one
+f1n = filter_one_reserved_number
 
 
 # 基础 ============================================================================================

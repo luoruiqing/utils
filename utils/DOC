@@ -23,6 +23,8 @@
 1 and "True" or "False"
 0 and "True" or "False"
 
+# 枚举
+from enum import Enum, unique
 
 # 商和余数同时得到 divmod()
 

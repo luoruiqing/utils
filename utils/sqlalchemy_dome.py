@@ -6,26 +6,65 @@ sqlacodegen:
     cmd: [--outfile d:\\models.py]
         sqlacodegen --noviews --noconstraints --noindexes mysql://root:123456@127.0.0.1:3306/test
 
-"""
 
+
+
+"""
+from __future__ import unicode_literals
 from subprocess import Popen, PIPE
+from logging import getLogger, DEBUG
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import create_engine
 
+logger = getLogger()
+logger.setLevel(DEBUG)
+
 template = '//{user}:{password}@{host}:{port}/{database}'
-config = dict(host="127.0.0.1", port=3306, database="test", user="root", password="123456", charset="utf8")
-generate_head = "sqlacodegen --noviews --noconstraints --noindexes mysql:"
+generate_head = "sqlacodegen --noviews --noconstraints --noindexes "
 get_session = lambda **config: sessionmaker(bind=create_engine("mysql+mysqlconnector:" + template.format(**config)))
+
+
+def setdefault__str__():
+    """
+    sqlalchemy 的所有__str__方法修改成易读的样子 ;)
+    a.py
+        class Tag(Base):
+            __tablename__ = 'tags'
+            name = Column(String(255), nullable=False)
+        print Tag(name="luoruiqing") ->  <invest.tools.database.model.Tag object at 0x03BAFD10>
+    b.py
+        setdefault__str__()
+        from a import Tag
+        print Tag(name="luoruiqing") ->   {"name": "luoruiqing"}
+    """
+    try:
+        from model import Base
+    except ImportError:
+        return False
+    from copy import copy
+    from json import dumps
+    def default__str__(self):
+        attr = copy(self.__dict__)
+        del attr["_sa_instance_state"]
+        return dumps(attr)
+
+    Base.__str__ = default__str__  # 改变原有的字符输出方法
+    return True
 
 
 def model_generate(**config):
     """ 生成 SQLAlchemy的model对象"""
-    command = generate_head + template.format(**config)
+    outfile = config.pop("outfile", '')
+    outfile = ("--outfile %s" % outfile) if outfile else ''
+    command = generate_head + outfile + " mysql:" + template.format(**config)
+    logger.debug(command)
     print command
-    process = Popen(command, stdout=PIPE)
-    return process.stdout.read()
+    return Popen(command, stdout=PIPE).stdout.read()
 
 
 if __name__ == '__main__':
-    print get_session(**config)
+    from logging import basicConfig
+
+    config = dict(host="127.0.0.1", port=3306, database="invest", user="root", password="123456", charset="utf8")
+    basicConfig()
     print model_generate(**config)

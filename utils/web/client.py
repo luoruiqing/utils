@@ -1,24 +1,13 @@
 # coding:utf-8
 
 from time import sleep
-from abc import ABCMeta
-from itertools import count
 from requests import Session
-from urlparse import urlparse
-from types import BooleanType
 from traceback import print_exc
 from json import loads as json_loads
 from logging import getLogger, DEBUG
-from core import ClientBase, get_platform_agent, InterceptRedirectException
-from types import NoneType, UnicodeType, StringTypes
-from user_agent import generate_navigator, generate_user_agent
-
-# from common import recoding, get_file_name, DEATH_CHAIN_CODES, REDIRECT_CODES, DEFAULT_HEADERS, CLOSE_CONN_HEADERS
-# stream=True
-# getLogger("requests").setLevel(logging.WARNING)
-# from operator import itemgetter
-
+from types import NoneType, UnicodeType
 from BeautifulSoup import BeautifulSoup as BS
+from core import ClientBase, get_platform_agent, InterceptRedirectException
 
 logger = getLogger(__name__)
 logger.setLevel(DEBUG)
@@ -62,7 +51,6 @@ class Client(ClientBase):
                     raise
                 sleep(interval or self.interval)
 
-
     def get_content(self, *args, **kwargs):
         string = self.request(*args, **kwargs).content
         if isinstance(string, UnicodeType):
@@ -101,23 +89,28 @@ class Client(ClientBase):
         return [history.url for history in response.history + [response]]
 
 
+class PhantomJsClient():
+    phantom_host = "http://127.0.0.1:8080"  # PhantomJS 服务器地址
+
+    def request(self, url, rendering_time=0, javascript="", render=False, cookies=None, headers=None,
+                load_images=False):
+        data = {
+            "url": url,
+            "render": render,
+            "renderingTime": rendering_time,
+            "javaScript": javascript,
+            "cookies": cookies or {},
+            "headers": headers or {},
+            "loadImages": load_images,
+        }
+        with Session() as session:
+            return session.request(url=self.phantom_host, method="POST", data=data)
+
 
 if __name__ == '__main__':
     from logging import basicConfig
 
     basicConfig()
     url = "http://www.baidu.com"
-    from json import dumps
-    from re import compile
-
     with Client(not_redirect=["albumlist/show"], redirect=True) as client:
-        # print client.request('http://video2.91huagu.com/dyj168/v/20160601/ghlp.mp4').headers
-        # print client.download_file('http://video2.91huagu.com/dyj168/v/20160601/ghlp.mp4')
-        # print client.get_redirect_urls("http://i.youku.com/u/UMTc2MDY1MjM5Ng==")
-        url = "http://www.youku.com/playlist_show/id_22097096.html"
-        # url = "https://movie.douban.com/trailer/video_url?tid=127848&hd=0"
-        response = client.request(url)
-        for key, value in response.headers.items():
-            print key, value
-        with open("s.mp4", "wb") as f:
-            f.write(response.content)
+        pass

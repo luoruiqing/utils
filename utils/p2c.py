@@ -3,6 +3,7 @@
     生产消费模型，且是固定数量的线程执行
 """
 from Queue import Queue, Empty
+from traceback import format_exc
 from logging import getLogger, DEBUG
 from abc import ABCMeta, abstractmethod
 from threading import Thread, current_thread
@@ -16,6 +17,9 @@ class P2CThread:
         1个生产者对应多个消费者
     """
     __metaclass__ = ABCMeta
+    thread_num = 8
+    queue_size = 256
+    queue_timeout = 1
 
     @abstractmethod
     def producer(self, *args, **kwargs):
@@ -24,10 +28,14 @@ class P2CThread:
     def _producer(self):
         thread_name = current_thread().name
         logger.debug("%s producer start work." % thread_name)
-        for item in self.producer() or []:
-            logger.info("add %s to queue", str(item))
-            self.queue.put(item)
-        self.producing = False
+        try:
+            for item in self.producer() or []:
+                logger.info("add %s to queue", str(item))
+                self.queue.put(item)
+        except:
+            raise
+        finally:
+            self.producing = False
         logger.debug("%s producer end work." % thread_name)
 
     @abstractmethod
@@ -39,19 +47,22 @@ class P2CThread:
         logger.debug("%s start consume." % thread_name)
         while self.producing or self.queue.qsize() > 0:
             try:
-                item = self.queue.get(timeout=1)
+                item = self.queue.get(timeout=self.queue_timeout)
                 logger.debug("%s start handle %s.", thread_name, str(item))
                 self.consumer(item)
-                logger.debug("%s end handle %s.", thread_name, str(item))
-            except Empty:
+            except Empty:  # 队列空忽略
                 pass
+            # except:  # 其他错误 忽略
+            #     logger.error(format_exc())
+            else:
+                logger.debug("%s end handle %s.", thread_name, str(item))
 
-    def start(self, thread_num=8, queue_size=256):
+    def start(self, thread_num=thread_num, queue_size=queue_size):
         self.queue = Queue(queue_size)
         self.threads = []
         Thread(target=self._producer).start()  # 启动一个生产者
         self.producing = True
-        for consumer_number in range(thread_num - 1 or 1):  # 至少双线程
+        for consumer_number in range(thread_num or 1):  # 至少双线程
             t = Thread(target=self._consumer)
             self.threads.append(t)
             t.start()  # 启动多个消费者
@@ -61,9 +72,11 @@ class P2CThread:
         for t in self.threads:
             t.join()
         logger.debug("End all work and quit.")
+        return self
 
     def pause(self, status=True):
         raise NotImplementedError()
+        return self
 
 
 if __name__ == '__main__':

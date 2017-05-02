@@ -27,6 +27,7 @@ from types import ListType
 from functools import partial, wraps
 from BeautifulSoup import BeautifulSoup, Tag, BeautifulStoneSoup
 
+# Tag = partial(Tag, BeautifulStoneSoup(), '')
 __str__ = lambda self: 'None'
 
 # 用来兼容的Tag 例: (soup.find(*) or FTT()).findAll(*)
