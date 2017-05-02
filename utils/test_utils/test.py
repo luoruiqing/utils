@@ -20,7 +20,7 @@ def test_cases(cls, cases=(), debug=True):
     :param thread: ...
     :return: None
     >>> test_cases(cls, "test_dome") #单方法测试
-    >>> test_cases(cls, ["test_dome1", "test_dome2"]) #多方法测试
+    >>> test_cases(cls, ["dome1", "test_dome2"]) #多方法测试
     >>> test_cases(cls) #全部测试
     '''
 
