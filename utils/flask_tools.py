@@ -1,6 +1,7 @@
 # coding:utf-8
 from functools import wraps
 from flask import Flask, request
+from werkzeug.datastructures import ImmutableMultiDict
 
 app = Flask(__name__)
 
@@ -9,7 +10,7 @@ def unpackargs(func):
     """ 解包参数
         不管任意方式 都将提交的内容解包
     """
-    from werkzeug.datastructures import ImmutableMultiDict
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         kwargs = (getattr(request, "form") or getattr(request, "args", ImmutableMultiDict())).to_dict()
