@@ -139,6 +139,11 @@ def replaces(str, **kwargs):
     return str
 
 
+def docking(list, string=""):
+    """ join时 前后也加上字符"""
+    return string + string.join(list) + string
+
+
 # 过滤器 =========================================================================================
 
 
