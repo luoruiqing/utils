@@ -1,6 +1,6 @@
 # coding:utf-8
 """
-    使用俩个元类的情况，例如：一边抽象接口一遍需要做其他操作
+    使用俩个元类的情况，例如：一边抽象接口一边需要做其他操作
 """
 from __future__ import unicode_literals
 from abc import ABCMeta, abstractproperty
