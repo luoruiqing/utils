@@ -32,3 +32,4 @@ class MyClass(MyClassBasic):
 
 if __name__ == '__main__':
     MyClass()
+    print "ok"
