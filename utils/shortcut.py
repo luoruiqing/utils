@@ -5,7 +5,7 @@
 from time import sleep
 from copy import deepcopy
 from sys import version_info
-from inspect import getcallargs  # https://www.zhihu.com/question/19794855
+from inspect import getargspec  # https://www.zhihu.com/question/19794855
 from collections import Iterable
 from functools import partial, wraps
 from types import IntType, LongType, FloatType, StringTypes, MethodType, UnboundMethodType, \
@@ -178,23 +178,11 @@ def get_move_duplicate_list(listing, copy=True):
     return listing
 
 
-def check_is_admin(f):
-    """ 关于位置参数的问题  例如：username是一个位置参数
-    在装饰器 或者全部传参数时候 通过 from inspect import getcallargs 获得真实的参数
-    @check_is_admin
-    def get_food(username, food='chocolate'):
-        return "{0} get food: {1}".format(username, food)
-    """
+def check_is_admin(func=lambda name, age=22: None):
+    """ 关于位置参数的问题  例如：username是一个位置参数 """
 
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        func_args = getcallargs(f, *args, **kwargs)
-        print func_args
-        if func_args.get('username') != 'admin':
-            raise Exception("This user is not allowed to get food")
-        return f(*args, **kwargs)
-
-    return wrapper
+    # print func.func_code.co_varnames  # 确定是方法类型 isinstance(v, MethodType)
+    return getargspec(func).args
 
 
 # 将单个列表依次分段，上一个与下一个组成一个列表
