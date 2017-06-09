@@ -5,9 +5,9 @@
 from time import sleep
 from copy import deepcopy
 from sys import version_info
-from inspect import getargspec  # https://www.zhihu.com/question/19794855
 from collections import Iterable
 from functools import partial, wraps
+from inspect import getargspec, getclasstree  # https://www.zhihu.com/question/19794855
 from types import IntType, LongType, FloatType, StringTypes, MethodType, UnboundMethodType, \
     BuiltinMethodType, TypeType
 
@@ -311,6 +311,11 @@ def replace_key(var_dict, replace_map):
 
 def replace_keys(var_list, replace_map):
     return [replace_key(var, replace_map=replace_map) for var in var_list]
+
+
+# 其他 ==========================================================================================
+# 获得类的继承树
+getclasstreestr = lambda _class: dumps(getclasstree([_class]), indent=2, default=lambda o: str(o).split(".")[-1][:-2])
 
 
 # 容错类  --------------------------------------------------------------------------------------
