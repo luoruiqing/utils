@@ -61,9 +61,8 @@ class ClientBase(__ClientBase__, Controller):
         self.timeout = timeout
         self.retries = retries
         self.interval = interval
-        self.headers = self.DEFAULT_HEADERS.copy()
+        self.headers = dict(self.DEFAULT_HEADERS.copy(), **(headers or {}))
         self.default_user_agent = self.headers["User-Agent"] = generate_user_agent(platform=platform)
-        self.headers.update(headers or {})
 
     @abstractmethod
     def request(self, url, data=None, headers=None, method=None, redirect=None, refer=None, platform=False,

@@ -46,8 +46,7 @@ class Client:
         _args, _kwargs = map(copy, (args, kwargs))  # 默认参数
         args = list(args)
         url = kwargs.pop("url", args.pop(0))
-        headers = self.DEFAULT_HEADERS.copy()
-        headers.update(kwargs.pop("headers", {}))
+        headers = dict(self.DEFAULT_HEADERS.copy(), **kwargs.pop("headers", {}))
 
         request_timeout = kwargs.pop("request_timeout", 15)
 
