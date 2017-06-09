@@ -34,7 +34,7 @@ def standard(func):
 
     @wraps(func)
     def _wrapper(*args, **kwargs):
-        requests_params = (request.form or request.args).to_dict()
+        requests_params = dict(request.args.to_dict(), **request.form.to_dict())
         for k, v in requests_params.iteritems() if len(func_params) > 1 else ():
             if k in func_params:
                 kwargs[k] = None if isinstance(v, StringType) and not v.strip() else v  # 对空字符处理
