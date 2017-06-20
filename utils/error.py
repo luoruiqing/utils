@@ -1,4 +1,5 @@
 # coding:utf-8
+from __future__ import unicode_literals
 from abc import ABCMeta
 from sys import exc_info
 from traceback import extract_tb
@@ -66,7 +67,50 @@ class Error(Exception):
 
 NORMAL = Error(0, "正常")
 
+
+class SystemBaseException(BaseException):
+    """ BaseException 错误基类 """
+
+
+class SystemException(Exception):
+    """ Exception 错误基类 """
+    __metaclass__ = ABCMeta
+
+
+class SystemError(SystemException):
+    """ 错误类 """
+
+
+class DemoError(SystemError):
+    """ 错误实现类 """
+    status = False
+    code = 0
+    msg = "Demo Error."
+
+    def __init__(self, message=msg, *args):
+        super(DemoError, self).__init__(message, *args)
+
+
+def test_error(error_object):
+    try:
+        raise error_object
+    except DemoError, e:
+        print e.status, e.code, e.message
+
+
 if __name__ == '__main__':
+    class DemoError1(DemoError):
+        """ 请求参数错误 """
+        code = 400
+
+
+    TEST_ERROR = DemoError("测试错误")
+
+    test_error(DemoError1("这里是错误提示"))
+    test_error(TEST_ERROR)
+    test_error(DemoError())
+
+
     def test():
         try:
             raise NORMAL
@@ -79,3 +123,5 @@ if __name__ == '__main__':
 
 
     test()
+
+del test_error
