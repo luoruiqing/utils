@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 from abc import ABCMeta
 from sys import exc_info
-from traceback import extract_tb
+from traceback import extract_tb, print_exc
 
 
 def get_error_info():
@@ -97,6 +97,31 @@ def test_error(error_object):
     except DemoError, e:
         print e.status, e.code, e.message
 
+
+# ============================================================================
+class AssertionErrorBase(AssertionError):
+    """
+    支持补货派生的AssertionError
+    """
+    code = 10000
+    msg = "Hi."
+
+    def __init__(self, args=(msg, code)):
+        message, self.code = args if len(args) == 2 else [args, self.code]
+        super(AssertionErrorBase, self).__init__(message)
+
+
+class AssertionError(AssertionErrorBase):
+    pass
+
+
+try:
+    assert False
+except AssertionError, e:
+    print_exc()
+    print "AssertionError: ", e.message, e.code
+
+# ============================================================================
 
 if __name__ == '__main__':
     class DemoError1(DemoError):
