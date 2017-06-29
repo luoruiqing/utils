@@ -37,3 +37,22 @@ error_info.each(function () {
         popover_dom.css({"top": popover_dom.offset().top + (popover_btn_y - popover_arrow_y)});
     })
 });
+
+// 多个popover 的手动触发，
+function popoverInit() {
+    $('被添加的元素').popover({ // 激活popover
+        html: true,
+        trigger: 'manual',
+        title: "loading...",
+        content: "loading..."
+    }).click(function (event) {
+        $('.popover').not(this).popover("hide"); // 同时只能打开一个popover
+        $(this).popover("toggle"); // 切换状态
+        event.stopPropagation();
+    });
+    $(document).click(function (e) { // TODO这段代码要放在外边 只执行一次
+        if ($(e.target).parents(".popover").length === 0) { // 如果不在popover弹窗体内则隐藏框
+            $('.popover').popover('hide');
+        }
+    });
+}
