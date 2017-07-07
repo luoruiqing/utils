@@ -57,7 +57,6 @@ class Range(ElasticSearchFilter):
         if "ae" in kwargs:
             self.clear()
             self["term"] = {name: kwargs.get("ae") or kwargs.get("value")}
-        print self
         assert not isinstance(self.get(self.key), DictType) or body, "No specified range."
 
         if date:
