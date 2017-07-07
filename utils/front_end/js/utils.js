@@ -35,6 +35,11 @@ Array.prototype.unique = function () {
     }
     return res;
 };
+// 清空数组
+Array.prototype.clear = function () {
+    this.splice(0, this.length);
+    return this
+};
 // 深拷贝
 function cloneObject(obj) {
     var str, newobj = obj.constructor === Array ? [] : {};
@@ -75,11 +80,10 @@ function updateObject(old_object, new_object) {
     return old_object
 }
 // 原地清空对象，不改变对象的引用
-function clearObject(object) {
-    for (var item in object) {
-        delete object[item];
-    }
-    return object
+function clearObj(obj) {
+    Object.keys(obj).forEach(function (key) {
+        delete obj[key];
+    });
 }
 // 校验对象值
 function checkJsonParams(object) {
@@ -112,6 +116,10 @@ function clearDragover(JqObject) {
 // 打印
 log = console.log;
 
-
 // 对象/数组打印
 table = console.table;
+// 查看对象内部方法
+function dir(object) {
+    for (var item in object)
+        console.log(item + ": " + object[item])
+}
