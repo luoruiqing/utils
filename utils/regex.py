@@ -1,6 +1,8 @@
+# coding:utf-8
 from re import search, _pattern_type as RegexType
 
 
+# ((?!字符).*?) 非字符
 # regex ----------------------------------------------------------------------
 
 def re_search(pattern, string, flags=0):
