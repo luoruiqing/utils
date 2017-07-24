@@ -1,3 +1,8 @@
+/*
+ 所有扩展方法
+ */
+// 字符串 **************************************************************************************************
+
 // 删除左右俩边的空格
 String.prototype.trim = function () {
     return this.replace(/(^\s*)|(\s*$)/g, "");
@@ -10,116 +15,102 @@ String.prototype.ltrim = function () {
 String.prototype.rtrim = function () {
     return this.replace(/(\s*$)/g, "");
 };
-// 测试值是否在数组里
-Array.prototype.indexOf = function (val) {
-    for (var i = 0; i < this.length; i++) {
-        if (this[i] == val) return i;
-    }
+
+// 数组 **************************************************************************************************
+
+// 获得元素在数组内的下标
+Array.prototype.index = function (value) {
+    for (let [index, item] of this.entries())
+        if (item === value) return index;
     return -1;
 };
+
 // 数组删除元素
-Array.prototype.remove = function (val) {
-    var index = this.indexOf(val);
-    if (index > -1) {
+Array.prototype.remove = function (value) {
+    let index = this.index(value);
+    if (index > -1)
         this.splice(index, 1);
-    }
 };
-Array.prototype.unique = function () {
-    var res = [];
-    var json = {};
-    for (var i = 0; i < this.length; i++) {
-        if (!json[this[i]]) {
-            res.push(this[i]);
-            json[this[i]] = 1;
-        }
+// 去重,changed 是否 改变引用/新建对象
+Array.prototype.unique = function (changed = false) {
+    let values = Array.from(new Set(this));
+    if (!changed) {
+        this.splice(0, this.length); // 清空本数组
+        for (let item of values)
+            this.push(item)
+        return this
     }
-    return res;
+    return values
 };
 // 清空数组
 Array.prototype.clear = function () {
     this.splice(0, this.length);
-    return this
+};
+// 过滤 键值对
+Array.prototype.filterObject = function (key, value) {
+    for (let object of this)
+        if (object[key] === value)
+            return object;
+};
+// 过滤 键值对
+Array.prototype.filterObjects = function (key, value) {
+    let result = [];
+    for (let object of this)
+        if (object[key] === value)
+            result.push(object);
+    return result
+};
+
+// 对象 **************************************************************************************************
+
+// 浅拷贝
+Object.copy = (object = {}) => {
+    let new_object = {};
+    Object.keys(object).forEach((key) => new_object[key] = object[key]);
+    return new_object
 };
 // 深拷贝
-function cloneObject(obj) {
-    var str, newobj = obj.constructor === Array ? [] : {};
-    if (typeof obj !== 'object') {
-        return;
-    } else if (window.JSON) {
-        str = JSON.stringify(obj); //系列化对象
-        newobj = JSON.parse(str); //还原
-    } else {
-        for (var i in obj) {
-            newobj[i] = typeof obj[i] === 'object' ? cloneObject(obj[i]) : obj[i];
-        }
-    }
-    return newobj;
-}
+Object.deepcopy = (object = {}) => JSON.parse(JSON.stringify(object));
 
-// 获得数组中的第一个元素
-function getOneByArray(array, key, value) { // 获得数组嵌套对象的中的一个对象
-    for (var i = 0; i < array.length; i++) {
-        if (array[i][key] == value) {
-            return array[i]
-        }
-    }
-}
 // 原地更新对象，不改变对象的引用
-function updateObject(old_object, new_object) {
-    // 如果 val 被忽略
-    for (var item in new_object) {
-        if (typeof new_object[item] === "undefined") {
-            // 删除属性
-            delete old_object[item];
-        }
-        else {
-            // 添加 或 修改
-            old_object[item] = new_object[item];
-        }
-    }
-    return old_object
-}
+Object.update = (object, new_object) => {
+    Object.keys(new_object).forEach((key) => object[key] = new_object[key]);
+    return object
+};
 // 原地清空对象，不改变对象的引用
-function clearObj(obj) {
-    Object.keys(obj).forEach(function (key) {
-        delete obj[key];
-    });
-}
-// 校验对象值
-function checkJsonParams(object) {
-    for (var item in object) {
-        if (!object[item]) {
-            return false
-        }
-    }
-    return true
-}
-// 清除拖拉事件的默认方法
-function clearDragover(JqObject) {
-    JqObject.ondragover = function (event) {
-        event.preventDefault();
-        return true;
-    };
-    return JqObject
-}
+Object.clear = (object) => {
+    Object.keys(object).forEach((key) => delete obj[key]);
+    return object
+};
+
+
+// 表单 **************************************************************************************************
+
 // Juqery序列化form表单为Json
-(function ($) { // Jquery转JSON
+function installSerializeJson($ = JQuery) { // Jquery转JSON
     $.fn.serializeJson = function () {
-        var serializeObj = {};
+        let serializeObj = {};
         $(this.serializeArray()).each(function () {
             serializeObj[this.name] = this.value;
         });
         return serializeObj;
     };
-})(jQuery);
+}
+// 调试 **************************************************************************************************
 
 // 打印
 log = console.log;
-
-// 对象/数组打印
 table = console.table;
 // 查看对象内部方法
-function dir(object) {
-    for (var item in object)
-        console.log(item + ": " + object[item])
-}
+dir = (object = {}) => {
+    for (let [key, value] of object) console.log(key + ": \t" + value)
+};
+// 事件 **************************************************************************************************
+
+
+// 其他 **************************************************************************************************
+
+// 校验对象值
+let test = {name: 1, age: 22};
+for (let [key, value] of Object.entries(test))
+    log(`${key} :\t\t\t\t\t${value}`);
