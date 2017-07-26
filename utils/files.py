@@ -25,8 +25,10 @@ def to_items(item, type=tuple):
     return r
 
 
-def get_abspath(__file__, path):
-    """ 根据相对路径 获得绝对路径 """
+def get_abspath(path, __file__="."):
+    """ 根据相对路径 获得绝对路径  __file__ 其他文件的属性，用来直接定位
+        其他文件 执行 get_abspath("test.txt",__file__) 
+    """
     return join(dirname(__file__), path)
 
 
