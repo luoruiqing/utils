@@ -2,7 +2,7 @@
 from glob import glob
 from random import sample
 from collections import Iterable
-from os.path import join, dirname
+from os.path import join, dirname, exists
 from os import path as os_path, remove, makedirs
 from types import IntType, LongType, FloatType, StringTypes
 
@@ -46,7 +46,7 @@ def remove_files_by_ext(pattern="*.pyc"):
     """  从执行目录开始 清楚所有符合条件的文件 """
     for item in to_items(pattern):
         for file in glob(item):
-            if path.exists(file):
+            if exists(file):
                 remove(file)
 
 
