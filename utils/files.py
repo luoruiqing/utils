@@ -1,8 +1,8 @@
 # coding:utf-8
-
 from glob import glob
 from random import sample
 from collections import Iterable
+from os.path import join, dirname
 from os import path as os_path, remove, makedirs
 from types import IntType, LongType, FloatType, StringTypes
 
@@ -23,6 +23,11 @@ def to_items(item, type=tuple):
     else:
         r = type([item, ])
     return r
+
+
+def get_abspath(__file__, path):
+    """ 根据相对路径 获得绝对路径 """
+    return join(dirname(__file__), path)
 
 
 def ensure_path(path):  # 可以优化
