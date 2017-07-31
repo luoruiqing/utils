@@ -4,9 +4,39 @@
 """
 from __future__ import unicode_literals
 from functools import wraps
-from flask import jsonify, request
+`from flask import jsonify, request, abort
+from flask.views import MethodView
 from abc import ABCMeta, abstractproperty
+from logging import root as logger
 from types import StringType, DictType, ListType, ObjectType
+from traceback import format_exc
+
+class MethodViewBase(MethodView):
+    def dispatch_request(self, *args, **kwargs):
+        try:
+            result = super(MethodViewBase, self).dispatch_request(*args, **kwargs)
+            if isinstance(result, (DictType, ListType)):
+                return jsonify({"message": "ok", "status": True, "data": result})
+            return result
+        except:
+            error = format_exc()
+            logger.error(error)
+            abort(500)
+            return jsonify({"message": error, "status": False, "data": {}})
+
+    @property
+    def json(self):
+        try:
+            self._json = getattr(self, "_json", None) or request.get_json(force=True)
+        except:
+            self._json = {}
+            logger.error(format_exc())
+        return self._json
+
+    @property
+    def params(self):
+        self._params = getattr(self, "_params", None) or (request.form or request.args).to_dict()
+        return self._params
 
 
 # ============================================================================
