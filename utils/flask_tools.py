@@ -4,7 +4,7 @@
 """
 from __future__ import unicode_literals
 from functools import wraps
-`from flask import jsonify, request, abort
+from flask import jsonify, request, abort
 from flask.views import MethodView
 from abc import ABCMeta, abstractproperty
 from logging import root as logger
