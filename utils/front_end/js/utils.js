@@ -2,7 +2,10 @@
  所有扩展方法
  */
 // 字符串 **************************************************************************************************
-
+// 替换所有
+String.prototype.replaceAll = function (s1, s2) {
+    return this.replace(new RegExp(s1, "gm"), s2);
+};
 // 删除左右俩边的空格
 String.prototype.trim = function () {
     return this.replace(/(^\s*)|(\s*$)/g, "");
