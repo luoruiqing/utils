@@ -9,15 +9,41 @@ from collections import Iterable
 from functools import partial, wraps
 from inspect import getargspec, getclasstree  # https://www.zhihu.com/question/19794855
 from types import IntType, LongType, FloatType, StringTypes, MethodType, UnboundMethodType, \
-    BuiltinMethodType, TypeType
+    BuiltinMethodType, TypeType, InstanceType, ClassType
 
 # Ellipsis 全局单例 不可回调 不可实例化 用 “is” 检测是不是本身
 DefaultFunc = lambda item: item
-NumberType = (IntType, LongType, FloatType)
+NumberTypes = (IntType, LongType, FloatType)
 MethodType = (MethodType, UnboundMethodType, BuiltinMethodType)
 
 py2 = version_info[0] == 2
 py3 = not py2
+
+
+def isnum(object):
+    try:
+        float(object)
+        return True
+    except:
+        return False
+
+
+def defaultfloat(object):
+    try:
+        return float(object)
+    except:
+        return object
+
+
+def defaultnumber(object):
+    try:
+        return int(object)
+    except ValueError:
+        try:
+            return float(object)
+        except ValueError:
+            pass
+    return object
 
 
 def nexter(func):
@@ -46,8 +72,18 @@ def call_rself(method, *args, **kwargs):
     return getattr(method, '__self__') or getattr(method, 'im_self')
 
 
-# 是否可以迭代，字符型除外
-isiter = lambda object: True if isinstance(object, Iterable) and not isinstance(object, StringTypes) else False
+def isiter(object):
+    # 是否可以迭代，字符型除外
+    if isinstance(object, Iterable) and not isinstance(object, StringTypes):
+        return True
+    return False
+
+
+def iter(object):
+    # 是否可以迭代，字符型除外
+    if isinstance(object, Iterable) and not isinstance(object, StringTypes):
+        return object
+    return ()
 
 
 def default_property(func):
@@ -121,15 +157,13 @@ flat = lambda l: sum(map(flat, l), []) if isinstance(l, list) else [l]  # 压平
 def to_items(item, type=tuple):
     """ 格式化为元祖，迭代类型中不包含字符 1 > (1,)  ["a"] > ["a"] """
     if isinstance(item, Iterable) and not isinstance(item, StringTypes):
-        r = item
-    else:
-        r = type([item, ])
-    return r
+        return item
+    return type([item, ])
 
 
-def strips(listing, chars=None):
+def strips(rows, chars=None):
     """ 对列表内的每一项执行strips """
-    return [item.strip(chars) for item in listing]
+    return [item.strip(chars) for item in rows]
 
 
 def replaces(str, **kwargs):
@@ -139,9 +173,9 @@ def replaces(str, **kwargs):
     return str
 
 
-def docking(list, string=""):
+def docking(rows, string=""):
     """ join时 前后也加上字符"""
-    return string + string.join(list) + string
+    return string + string.join(rows) + string
 
 
 # 过滤器 =========================================================================================
@@ -156,7 +190,7 @@ def filter_one(function=None, sequence=(), default=None):
     return next((item for item in sequence if function(item)), default)  # 这里很高级 (...for...) 居然是生成器
 
 
-ReservedNumbersFunc = lambda item: isinstance(item, NumberType) or item  # 保留数字
+ReservedNumbersFunc = lambda item: isinstance(item, NumberTypes) or item  # 保留数字
 filter_reserved_number = partial(filter, ReservedNumbersFunc)  # filter_reserved_number([0, True, 2, 3])
 
 filter_one_reserved_number = partial(filter_one, ReservedNumbersFunc)  # 很多情况下的0也是要的  不是过滤掉
@@ -168,27 +202,67 @@ f1n = filter_one_reserved_number
 
 # 基础 ============================================================================================
 
-def get_move_duplicate_list(listing, copy=True):
-    """ 有序set 列表去重后保持有序 """
+def order_move_duplicate(listing, copy=True):
+    """ 有序set 列表去重后保持有序 原地转换 不改变引用 """
     new_list = list(set(listing))
     result = sorted(new_list, key=listing.index)
-    if copy:
-        return result
-    listing[:] = result
-    return listing
+    if not copy:
+        listing[:] = result
+        return listing
+    return result
 
 
-def check_is_admin(func=lambda name, age=22: None):
+omdlist = order_move_duplicate
+
+
+def check_is_admin(object=lambda name, age=22: None):
     """ 关于位置参数的问题  例如：username是一个位置参数 """
+    class_func = False
+    if isinstance(object, (InstanceType, ClassType, TypeType)):
+        class_func = getattr(object, "__init__", None) or getattr(object, "__call__", None)
+        assert class_func, "Class object has no entry method."
+        object = class_func.__func__
+    if isinstance(object, MethodType):
+        class_func = True
 
-    # print func.func_code.co_varnames  # 确定是方法类型 isinstance(v, MethodType)
-    return getargspec(func).args
+    return "||||{}".format(object.func_code.co_varnames[1 if class_func else 0:])  # 确定是方法类型 isinstance(v, MethodType)
 
 
+class A():
+    def __init__(self, name=22):
+        pass
+
+
+class B(object):    pass
+
+
+print type(B)
+print type(B())
+from types import InstanceType
+
+print isinstance(B(), InstanceType)
+print "=" * 100
+# print isinstance(B, ModuleType)
+
+# print "A(): ", check_is_admin(A())
+# print "A: ", check_is_admin(A)
+# print "A.__init__: ", check_is_admin(A.__init__)
+# print "A().__init__): ", check_is_admin(A().__init__)
+# print "[TEST]: ", isinstance(B(), ClassType)
+# print "B(): ", check_is_admin(B())
+# print "=" * 50
+# print "B: "
+# print check_is_admin(B)
+# print "=" * 50
+# print "B.__init__: ", check_is_admin(B.__init__)
+# print "B().__init__: ", check_is_admin(B().__init__)
+# print "None: ", check_is_admin()
 # 将单个列表依次分段，上一个与下一个组成一个列表
 '''
 def subsection(listing):  # 正常版本
-    """  sub(range(5)) -> [[0, 1], [1, 2], [2, 3], [3, 4]] """
+    """  sub(range(5)) -> [[0, 1], [1, 2], [2, 3], [3, 4]] 
+         sub(range(0,15,3)) -> [[0, 3], [3, 6], [6, 9], [9, 12]]
+    """
     result = []
     print reduce(lambda a, b: result.append([a, b]) or b, listing)
     return result
@@ -288,6 +362,9 @@ def list_to_dict(rows, key):
     print ltd([{"a":1},....], "a")  > {1:{"a":1},.....}
     """
     return dict((row[key], row) for row in rows)
+
+
+index_dict = list_to_dict
 
 
 def unpack_dict(dictionary, *fields):
