@@ -48,13 +48,34 @@ STYLES = [
 
 
 def timestamp(datetime_object=None, **kwargs):
-    """ 获得一个时间戳 """
-    return mktime(datetime(datetime_object).timetuple())
+    """ 获得一个时间戳 
+    >>> from time import time
+    >>> int(timestamp()) == int(time())
+    True
+    """
+    return mktime(datetime(datetime_object, **kwargs).timetuple())
 
 
 def datetime(object=None, year=None, month=None, day=None, hour=None, minute=None, second=None,
              millisecond=None, microsecond=None, format=DEFAULT_FORMATTER):
-    """ 获得时间对象 默认使用当前时间 可以是<datetime对象>、<date对象>和<时间戳> """
+    """ 获得时间对象 默认使用当前时间 可以是<datetime对象>、<date对象>和<时间戳> 
+    >>> from time import time
+    >>> from datetime import datetime as _dt, date
+    
+    >>> timestamp(datetime()) == int(time())
+    True
+    >>> isinstance(datetime(_dt.now()), DatetimeType)
+    True
+    >>> datetime(date(1995,02,06))
+    datetime.date(1995, 2, 6)
+    >>> print format_time(datetime(year=1995, month=02, day=06), format="%Y-%m-%d")
+    1995-02-06
+    >>> now = _dt.now()
+    >>> format_time(datetime(None, now.year, now.month, now.day, now.hour, now.minute, now.second)) == format_time(time())
+    True
+    >>> format_time(datetime(time())) == format_time(_datetime.fromtimestamp(time()))
+    True
+    """
     dt_obj, now = None, _datetime.now()
     if isinstance(object, (DatetimeType, DateType)):
         return object
@@ -84,6 +105,9 @@ def format_time(object=None, format=DEFAULT_FORMATTER, **kwargs):
 def get_timestamp(string, default=None):
     """根据时间日期字符获得时间戳
     get_timestamp('刚刚') >>> _now()
+    >>> from time import time
+    >>> int(get_timestamp('刚刚')) == int(time())
+    True
     """
     string = string.strip()
     for style, func in STYLES:
@@ -112,7 +136,18 @@ def offset_time(object=None, year=0, month=0, day=0, hour=0, minute=0, second=0,
 
 def replace_time(dt=None, year=None, month=None, day=None,
                  hour=None, minute=None, second=None, microsecond=None):
-    """ 替换时间  默认使用当前时间 可以是<datetime对象>、<date对象>和<时间戳> 不支持星期，替换星期没意义 替换值必须是存在日期 """
+    """ 替换时间  默认使用当前时间 可以是<datetime对象>、<date对象>和<时间戳> 不支持星期，替换星期没意义 替换值必须是存在日期 
+    # >>> a,b = replace_time(), datetime()
+    # >>> print a,b
+    # >>> replace_time()
+    # >>> replace_time()
+    # >>> replace_time()
+    # >>> replace_time()
+    # >>> replace_time()
+    # >>> replace_time()
+    # >>> replace_time()
+    # >>> replace_time()
+    """
     datetime_obj = datetime(dt, year, month, day, hour, minute, second, microsecond)
     kwargs = dict(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=microsecond)
     kwargs = dict((k, v) for k, v in kwargs.items() if v)  # 过滤空参数
@@ -156,6 +191,9 @@ a, _, b = now(), sleep(1), now()
 print a, b
 """
 if __name__ == '__main__':
+    from doctest import testmod
+
+    testmod()
     print "1888年的今天：", datetime(year=1888)
     print "我要获得3月份的时间戳：", format_time(get_timestamp("3月份"))
     print "我要获得向前偏移1星期的日期：", format_time(offset_time(weeks=-1))
