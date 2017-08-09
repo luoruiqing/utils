@@ -1,8 +1,10 @@
 # coding:utf-8
 from os import walk
+from functools import wraps
 from types import ModuleType
 from importlib import import_module
 from os.path import join, split, splitext, abspath
+
 
 
 def import_mapping_classes(root):
@@ -29,5 +31,16 @@ def import_mapping_classes(root):
             yield pack_path, getattr(import_module(pack_path), _class_name)
 
 
-if __name__ == '__main__':
-    pass
+def call_self(method, *args, **kwargs):
+    """调用方法，然后返回自身 dome: call_rself(range(55).remove, 1) """
+    # assert isinstance(method, MethodType)
+    method(*args, **kwargs)
+    return getattr(method, '__self__') or getattr(method, 'im_self')
+
+
+def return_self(func):
+    @wraps
+    def wrapper(self, *args, **kwargs):
+        return func(self, *args, **kwargs)
+
+    return wrapper
