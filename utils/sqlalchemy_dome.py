@@ -8,13 +8,18 @@ sqlacodegen:
 
 
 
-
 """
-from __future__ import unicode_literals
+from copy import copy
 from subprocess import Popen, PIPE
 from logging import getLogger, DEBUG
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine import create_engine
+from sqlalchemy.ext.declarative import DeclarativeMeta
+
+try:
+    from model import Base
+except ImportError:
+    Base = type("", (object,), {})()
 
 logger = getLogger()
 logger.setLevel(DEBUG)
@@ -24,37 +29,42 @@ generate_head = "sqlacodegen --noviews --noconstraints --noindexes "
 get_session = lambda **config: sessionmaker(bind=create_engine("mysql+mysqlconnector:" + template.format(**config)))
 
 
-def setdefault__str__():
+def default__str__(self):
     """
+    :param self: 
+    :return:
+    
     sqlalchemy 的所有__str__方法修改成易读的样子 ;)
-    a.py
+    model.py
         class Tag(Base):
             __tablename__ = 'tags'
             name = Column(String(255), nullable=False)
         print Tag(name="luoruiqing") ->  <invest.tools.database.model.Tag object at 0x03BAFD10>
-    b.py
+    test.py
         setdefault__str__()
-        from a import Tag
+        from model import Tag
         print Tag(name="luoruiqing") ->   {"name": "luoruiqing"}
-    """
-    try:
-        from model import Base
-    except ImportError:
-        return False
-    from copy import copy
-    from json import dumps
-    def default__str__(self):
-        attr = copy(self.__dict__)
-        del attr["_sa_instance_state"]
-        return dumps(attr)
 
-    Base.__str__ = default__str__  # 改变原有的字符输出方法
-    return True
+    """
+    attr = copy(self.__dict__)
+    del attr["_sa_instance_state"]
+    return dumps(attr)
+
+
+# 改变原有的字符输出方法
+Base.__str__ = default__str__
+# 返回所有的内容为字典类型
+Base.dict = property(lambda self: {c.name: getattr(self, c.name) for c in self.__table__.columns})
+
+
+def dumps(object):
+    if isinstance(object.__class__, DeclarativeMeta):
+        return object.dict
 
 
 def model_generate(**config):
     """ 生成 SQLAlchemy的model对象"""
-    outfile = config.pop("outfile", '')
+    outfile = config.pop("outfile", None)
     outfile = ("--outfile %s" % outfile) if outfile else ''
     command = generate_head + outfile + " mysql:" + template.format(**config)
     logger.debug(command)
@@ -65,6 +75,7 @@ def model_generate(**config):
 if __name__ == '__main__':
     from logging import basicConfig
 
-    config = dict(host="127.0.0.1", port=3306, database="invest", user="root", password="123456", charset="utf8")
+    config = dict(host="127.0.0.1", port=3306, database="dictionary", user="root", password="123456",
+                  charset="utf8")
     basicConfig()
     print model_generate(**config)
