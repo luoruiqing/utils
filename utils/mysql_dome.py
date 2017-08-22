@@ -46,11 +46,19 @@ from decimal import Decimal
 from functools import partial
 from collections import Iterable
 from types import IntType, NoneType
+from  collections import OrderedDict
 from json import dumps as json_dumps
 from pymysql.cursors import DictCursor
 from tornado.gen import coroutine, Return
 from tornado_mysql import connect, cursors
 from pymysql.connections import Connection
+from pymysql.cursors import DictCursorMixin, Cursor
+
+
+class OrderedDictCursor(DictCursorMixin, Cursor):
+    """ 有序字典游标类 PyMysql """
+    dict_type = OrderedDict
+
 
 TDB = partial(connect, host="127.0.0.1", port=3306, user='root', passwd='123456',
               db='test', cursorclass=cursors.DictCursor)
