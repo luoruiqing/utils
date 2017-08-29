@@ -67,7 +67,7 @@ class OrderedDictCursor(DictCursorMixin, Cursor):
 # with connect(**conn_info) as (conn, cur):
 #     cur.execute("SHOW TABLES;")
 #     print cur.fetchall()
-#     print conn.commit()
+#     # 自动commit
 
 TDB = partial(connect, host="127.0.0.1", port=3306, user='root', passwd='123456',
               db='test', cursorclass=cursors.DictCursor)
