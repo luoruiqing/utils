@@ -42,6 +42,7 @@ conn.server_status #服务器状态 1 正常
 conn.server_thread_id # 本次连接被分配的线程ID
 conn.ssl # 是否是SLL连接
 """
+from pymysql import connect
 from decimal import Decimal
 from functools import partial
 from collections import Iterable
@@ -55,10 +56,18 @@ from pymysql.connections import Connection
 from pymysql.cursors import DictCursorMixin, Cursor
 
 
+Connection.__enter__ = lambda self: (self, self.cursor())  # 返回游标
+
+
 class OrderedDictCursor(DictCursorMixin, Cursor):
     """ 有序字典游标类 PyMysql """
     dict_type = OrderedDict
 
+
+# with connect(**conn_info) as (conn, cur):
+#     cur.execute("SHOW TABLES;")
+#     print cur.fetchall()
+#     print conn.commit()
 
 TDB = partial(connect, host="127.0.0.1", port=3306, user='root', passwd='123456',
               db='test', cursorclass=cursors.DictCursor)
