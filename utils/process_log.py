@@ -47,16 +47,11 @@ class ProcessLog(Connection):
         self.commit()
         cur.close()
 
-    def reload(self):
-        """ 不使用旧连接 直接刷新 """
-        self.close()
-        self.ping()
-        self.refresh(status=self.PASS)
-        return self
-
     def refresh(self, message=None, end_time=None, status=RUNNING, info=None):
         """ 每次刷新都是运行中 """
         self.message = message
+        if not self.open: # 如果连接超时关闭,重新连接
+            self.connect()
         self._execute(self.REFRESH_TEMPLATE, (status, end_time, message, info, self.name))
         return self
 
@@ -85,9 +80,8 @@ if __name__ == '__main__':
         with ProcessLog("测试", host="127.0.0.1", user="root", password="123456", database="test") as pl:
             print "运行中"
             pl.refresh(message="执行1")
-            pl.close()
+            pl.close()  # 关闭连接 因为超时或者某些特殊情况
             print "正常"
-            pl.reload() # TODO 这里没完成
             pl.refresh(message="执行2")
 
 
