@@ -11,6 +11,10 @@ from inspect import getargspec, getclasstree  # https://www.zhihu.com/question/1
 from types import IntType, LongType, FloatType, StringTypes, MethodType, UnboundMethodType, \
     BuiltinMethodType, TypeType, InstanceType, ClassType
 
+try:
+    import typing
+except:
+    pass
 # Ellipsis 全局单例 不可回调 不可实例化 用 “is” 检测是不是本身
 DefaultFunc = lambda item: item
 NumberTypes = (IntType, LongType, FloatType)
@@ -20,7 +24,33 @@ py2 = version_info[0] == 2
 py3 = not py2
 
 
-def isnum(object):
+def combination_level(rows, key='children'):
+    ''' 组合父子关系 '''
+    for row in rows:  # 这里会累加成一个相互引用的对象
+        if row.father_id is not None:  # 如果有父亲节点,寻找父亲节点
+            get_father = (father for father in rows if father.id == row.father_id)  # 找爸爸
+            next(get_father, {}).setdefault(key, []).append(row)  # 将子菜单的引用追加到父亲节点上
+        row.setdefault(key, [])  # 设置所有对象为空列表
+    roots = [row for row in rows if row.father_id is None]  # 所有根节点
+
+    return roots  # 找到最上层的多个节点 同时丢弃多引用的对象
+
+
+def tree_callback(leaf, root=None, children_key='children', callback=None, level=0):
+    ''' 传入当前数据 上层数据 在数据中的第几层(1开始) 嵌套回调 '''
+    level = 1 + level
+    # 如果传入的是列表
+    leafs, leaf = (leaf, None) if isinstance(leaf, list) else([], leaf)
+    # 如果不是列表
+    if not leafs:
+        callback(leaf, root, level)  # 回调
+        leafs = leaf.get(children_key) or []  # 获得子节点
+    for root in leafs:
+        tree_callback(root, root=leaf, children_key=children_key, callback=callback, level=level)
+    return leaf
+
+
+def isnum(object):  # type: (str) -> bool
     try:
         float(object)
         return True
@@ -28,14 +58,14 @@ def isnum(object):
         return False
 
 
-def defaultfloat(object):
+def defaultfloat(object):  # type: (str or int or float or object) -> float
     try:
         return float(object)
     except:
         return object
 
 
-def defaultnumber(object):
+def defaultnumber(object):  # type: (int or str) -> float or int
     try:
         return int(object)
     except ValueError:
@@ -46,7 +76,7 @@ def defaultnumber(object):
     return object
 
 
-def nexter(func):
+def nexter(func):  # type: (iter) -> iter(object)
     """ 全局单次迭代器
     @nexter
     def iter_item():
@@ -57,7 +87,7 @@ def nexter(func):
 
 
 # ====================================== 方法 Methods ============================================
-def closed_eval(eval_py="", must_vars=None):
+def closed_eval(eval_py="", must_vars=None):  # type: (str, vars) -> eval
     """ eval_py执行的语句 must_vars 需要使用的变量 """
     must_vars = must_vars if must_vars else {}
     for var, value in must_vars.items():
@@ -65,28 +95,21 @@ def closed_eval(eval_py="", must_vars=None):
     return eval(eval_py)
 
 
-def call_rself(method, *args, **kwargs):
-    """调用方法，然后返回自身 dome: call_rself(range(55).remove, 1) """
-    assert isinstance(method, MethodType)
-    method(*args, **kwargs)
-    return getattr(method, '__self__') or getattr(method, 'im_self')
-
-
-def isiter(object):
+def isiter(object):  # type: (object) -> bool
     # 是否可以迭代，字符型除外
     if isinstance(object, Iterable) and not isinstance(object, StringTypes):
         return True
     return False
 
 
-def iter(object):
+def iter(object):  # type: (object) -> iter
     # 是否可以迭代，字符型除外
     if isinstance(object, Iterable) and not isinstance(object, StringTypes):
         return object
     return ()
 
 
-def default_property(func):
+def default_property(func):  # type: (function) -> property(function)
     """ 只执行一次的默认值方法，如果制造一个对象有很多个属性，都是执行一次的，那就写的太多了
     class A():
         @property
@@ -124,6 +147,7 @@ def default_property(func):
 
 
 def retry(error=Exception, default=Ellipsis, number=3, interval=0):
+    # type: (Exception, object, int, int) -> callable(function) or function
     """ 重试装饰器, 错误类,默认值(无则报错), 重试次数, 重试间隔时间
             err1 = retry(default=None)(lambda: 1 + 2)
             err2 = retry(lambda: 1 + 2)
@@ -149,12 +173,12 @@ def retry(error=Exception, default=Ellipsis, number=3, interval=0):
     return wrapper
 
 
-flat = lambda l: sum(map(flat, l), []) if isinstance(l, list) else [l]  # 压平多嵌套列表
+flat = lambda l: sum(map(flat, l), []) if isinstance(l, list) else [l]  # type: (list) -> list  # 压平多嵌套列表
 
 
 # ======================================== 字符类型 StringType ==============================================
 
-def to_items(item, type=tuple):
+def to_items(item, type=tuple):  # type: (object or iter, object) -> tuple
     """ 格式化为元祖，迭代类型中不包含字符 1 > (1,)  ["a"] > ["a"] """
     if isinstance(item, Iterable) and not isinstance(item, StringTypes):
         return item
@@ -210,6 +234,14 @@ def order_move_duplicate(listing, copy=True):
         listing[:] = result
         return listing
     return result
+
+
+def del_duplication(li):
+    ''' 数据去重后保持顺序只能是列表类型 '''
+    assert isinstance(li, list), "必须是列表类型"
+    new_li = list(set(li))  # 去重
+    new_li.sort(key=li.index)
+    return new_li
 
 
 omdlist = order_move_duplicate
@@ -391,7 +423,7 @@ def replace_keys(var_list, replace_map):
 
 
 # 其他 ==========================================================================================
-# 获得类的继承树
+# 获得类的继承树 父类
 getclasstreestr = lambda _class: dumps(getclasstree([_class]), indent=2, default=lambda o: str(o).split(".")[-1][:-2])
 
 

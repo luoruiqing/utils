@@ -3,6 +3,7 @@ from time import strptime, mktime, time as _now
 from datetime import datetime as _datetime, date
 from re import compile, _pattern_type as RegexType
 from types import StringTypes, IntType, FloatType, LongType, NoneType
+from dateutil import parser  # 任意时间字符串转时间对象
 
 DateType = (type(date), type(date(1970, 1, 1)))
 DatetimeType = (type(_datetime), type(_datetime.now()))

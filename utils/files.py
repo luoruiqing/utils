@@ -3,7 +3,7 @@ from glob import glob
 from random import sample
 from collections import Iterable
 from os.path import join, dirname, exists
-from os import path as os_path, remove, makedirs
+from os import path as os_path, remove, makedirs, walk
 from types import IntType, LongType, FloatType, StringTypes
 
 NumberType = (IntType, LongType, FloatType)
@@ -17,7 +17,17 @@ base = [
 
 
 def to_items(item, type=tuple):
-    """ 格式化为元祖，迭代类型中不包含字符 1 > (1,)  ["a"] > ["a"] """
+    """ 格式化为元祖，迭代类型中不包含字符 1 > (1,)  ["a"] > ["a"] 
+
+    >>> print to_items(1)
+    (1,)
+    >>> print to_items("a", type=list)
+    ['a']
+    >>> from types import GeneratorType
+    >>> case = to_items((x for x in range(5)))
+    >>> isinstance(case, GeneratorType)
+    True
+    """
     if isinstance(item, Iterable) and not isinstance(item, StringTypes):
         r = item
     else:
@@ -54,3 +64,11 @@ def remove_files_by_ext(pattern="*.pyc"):
 
 def random_filename(limit=16, ext=''):
     return "".join(sample(base, limit)) + ext
+
+
+def get_files(root):
+    """
+    :param root: 一级根目录
+    :return: 所有文件的相对路径
+    """
+    return [join(root, file) for root, dirs, files in walk(root) for file in files]
