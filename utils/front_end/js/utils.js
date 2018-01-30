@@ -4,19 +4,19 @@
 // 字符串 **************************************************************************************************
 // 替换所有
 String.prototype.replaceAll = function (s1, s2) {
-    return this.replace(new RegExp(s1, "gm"), s2);
+    return this.replace(new RegExp(s1, 'gm'), s2);
 };
 // 删除左右俩边的空格
 String.prototype.trim = function () {
-    return this.replace(/(^\s*)|(\s*$)/g, "");
+    return this.replace(/(^\s*)|(\s*$)/g, '');
 };
 //删除左边的空格
 String.prototype.ltrim = function () {
-    return this.replace(/(^\s*)/g, "");
+    return this.replace(/(^\s*)/g, '');
 };
 //删除右边的空格
 String.prototype.rtrim = function () {
-    return this.replace(/(\s*$)/g, "");
+    return this.replace(/(\s*$)/g, '');
 };
 
 // 数组 **************************************************************************************************
@@ -41,9 +41,9 @@ Array.prototype.unique = function (changed = false) {
         this.splice(0, this.length); // 清空本数组
         for (let item of values)
             this.push(item)
-        return this
+        return this;
     }
-    return values
+    return values;
 };
 // 清空数组
 Array.prototype.clear = function () {
@@ -61,7 +61,7 @@ Array.prototype.filterObjects = function (key, value) {
     for (let object of this)
         if (object[key] === value)
             result.push(object);
-    return result
+    return result;
 };
 
 // 对象 **************************************************************************************************
@@ -70,7 +70,7 @@ Array.prototype.filterObjects = function (key, value) {
 Object.copy = (object = {}) => {
     let new_object = {};
     Object.keys(object).forEach((key) => new_object[key] = object[key]);
-    return new_object
+    return new_object;
 };
 // 深拷贝
 Object.deepcopy = (object = {}) => JSON.parse(JSON.stringify(object));
@@ -78,19 +78,19 @@ Object.deepcopy = (object = {}) => JSON.parse(JSON.stringify(object));
 // 原地更新对象，不改变对象的引用
 Object.update = (object, new_object) => {
     Object.keys(new_object).forEach((key) => object[key] = new_object[key]);
-    return object
+    return object;
 };
 // 原地清空对象，不改变对象的引用
 Object.clear = (object) => {
     Object.keys(object).forEach((key) => delete obj[key]);
-    return object
+    return object;
 };
 
 
 // 表单 **************************************************************************************************
 
 // Juqery序列化form表单为Json
-function installSerializeJson($ = JQuery) { // Jquery转JSON
+function installSerializeJson ($ = JQuery) { // Jquery转JSON
     $.fn.serializeJson = function () {
         let serializeObj = {};
         $(this.serializeArray()).each(function () {
@@ -106,7 +106,7 @@ log = console.log;
 table = console.table;
 // 查看对象内部方法
 dir = (object = {}) => {
-    for (let [key, value] of object) console.log(key + ": \t" + value)
+    for (let [key, value] of object) console.log(key + ': \t' + value)
 };
 // 事件 **************************************************************************************************
 
@@ -117,3 +117,17 @@ dir = (object = {}) => {
 let test = {name: 1, age: 22};
 for (let [key, value] of Object.entries(test))
     log(`${key} :\t\t\t\t\t${value}`);
+
+
+digging = (roots, key, callback) => {
+    /// 下钻指标功能
+    let level = 0;
+    let each = (node) => {
+        level += 1;
+        for (let item of node) {
+            callback(item, node, level);
+            if (item[key] && item[key].length > 0) each(item[key]);
+        }
+    };
+    each(roots);
+};
