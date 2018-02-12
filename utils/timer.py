@@ -1,14 +1,17 @@
 # coding:utf-8
 from time import strptime, mktime, time as _now
-from datetime import datetime as _datetime, date
+from datetime import datetime as _datetime, date, timedelta
 from re import compile, _pattern_type as RegexType
 from types import StringTypes, IntType, FloatType, LongType, NoneType
-from dateutil import parser  # 任意时间字符串转时间对象
+from dateutil import parser  # 任意时间字符串转换为时间对象 非常强大
+from croniter import croniter  # 根据crontab的定时规则计算真正触发时间
 
-DateType = (type(date), type(date(1970, 1, 1)))
-DatetimeType = (type(_datetime), type(_datetime.now()))
-NumberType = (IntType, FloatType, LongType)
-DEFAULT_FORMATTER = "%Y-%m-%d %H:%M:%S"
+DateType = (type(date), type(date(1970, 1, 1)))  # 所有日期类型
+DatetimeType = (type(_datetime), type(_datetime.now()))  # 所有日期时间类型
+NumberType = (IntType, FloatType, LongType)  # 所有数字类型
+TimedeltaType = type(timedelta())  # 时间相减后的差值对象
+
+DEFAULT_FORMATTER = "%Y-%m-%d %H:%M:%S"  # 普通时间格式转换
 
 PICOSECOND = 0.000000000001  # 皮秒
 NANOSECOND = PICOSECOND * 1000  # 纳秒
@@ -46,6 +49,15 @@ STYLES = [
     (compile('(\d+)\s*(?:日|号)'), lambda *args: replace_time(day=int(args[0]))),
 
 ]
+
+
+def remove_microsecond(object):
+    ''' 将时间转换为不带毫秒的形式 '''
+    if isinstance(object, datetime):  # 普通时间对象
+        return object.replace(microsecond=0)
+    if isinstance(object, TimedeltaType):  # 时间计算对象
+        return timedelta(seconds=int(object.total_seconds()))  # 取整
+    raise Exception('时间对象去除毫秒数据的转换不支持!')
 
 
 def timestamp(datetime_object=None, **kwargs):
