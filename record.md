@@ -13,5 +13,10 @@
     &lt;component :event="(a,b) => querySearch(filter, a, b)"/&gt;
 </code>
 
+### 代理组件的事件
+##### $listeners
+<code>
+    &lt;component v-on="$listeners"/&gt;
+</code>
 ## Python
 
