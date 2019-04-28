@@ -57,7 +57,7 @@ class SSHClient(_SSHClient):
 
     @staticmethod
     def get_private_key_file(string):
-    ''' 根据私钥内容生成文件接口, 方便paramiko模块使用 '''
+        ''' 根据私钥内容生成文件接口, 方便paramiko模块使用 '''
         file_object = io.StringIO()
         file_object.write(string)
         file_object.seek(0, os.SEEK_SET)  # 文件指针到开始
