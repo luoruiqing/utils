@@ -1,5 +1,5 @@
-# coding:utf-8
 from sys import platform
+import io
 from os import popen as sys_popen
 from logging import getLogger, DEBUG
 from subprocess import PIPE, Popen as subprocess_popen
@@ -7,6 +7,8 @@ from paramiko import AutoAddPolicy, SSHClient as _SSHClient
 
 logger = getLogger()
 logger.setLevel(DEBUG)
+
+# client.load_system_host_keys()  # 加载系统的机器列表 直接通过机器访问
 
 
 def subprocess_cmd(command, *args, **kwargs):
@@ -39,32 +41,41 @@ def sys_cmd(command):
     return sts
 
 
-def ssh_cmd(command, hostname, port=22, username=None, password=None):
-    with SSHClient(hostname=hostname, port=port, username=username, password=password) as ssh_c:
-        e = ssh_c.exe(command)
-    return e
-
-
-CommandError = type('CommandError', (Exception,), {})
+# CommandError = type('CommandError', (Exception,), {})
 
 
 class SSHClient(_SSHClient):
     def __init__(self, *args, **kwargs):
-        self.hostname = kwargs.get("hostname") or (args or [None, ])[0]
+        self.hostname = kwargs.get("hostname") or (args or [None, ])[0]  # 获取服务器名称
         super(SSHClient, self).__init__()
-        self.set_missing_host_key_policy(AutoAddPolicy())
+        self.init()  # 做一部分简单的初始化
+        private_key_string = kwargs.pop("private_key", None)
+        if private_key_string:
+            file_object = self.get_private_key_file()  # 字符类型的私钥  生成Python IO对象
+            kwargs['pkey'] = paramiko.RSAKey.from_private_key(file_object)  # 生成paramiko密钥对象
         self.connect(*args, **kwargs)
-        # self.set_log_channel("test.log")
 
-    def exe(self, command, safe=False):
-        stdin, stdout, stderr = self.exec_command(command)
-        e = stderr.read()
-        if e:
-            error = "[%s] " % self.hostname + e
-            if safe:
-                raise CommandError(error)
-            logger.warning(error)
-        return stdout.read() or e
+    @staticmethod
+    def get_private_key_file(string):
+    ''' 根据私钥内容生成文件接口, 方便paramiko模块使用 '''
+        file_object = io.StringIO()
+        file_object.write(string)
+        file_object.seek(0, os.SEEK_SET)  # 文件指针到开始
+        return file_object  # RSAKey.from_private_key(file_object)
+
+    # def exe(self, command, safe=False):
+
+    #     stdin, stdout, stderr = self.exec_command(command)
+    #     e = stderr.read()
+    #     if e:
+    #         error = "[%s] " % self.hostname + e
+    #         if safe:
+    #             raise CommandError(error)
+    #         logger.warning(error)
+    #     return stdout.read() or e
+
+    def init(self, *args, **kwargs):
+        self.set_missing_host_key_policy(AutoAddPolicy())
 
 
 if "win" not in platform:
