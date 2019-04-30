@@ -1,8 +1,19 @@
 ### & 记录一些比较偏门的问题 &
 
+### Linux
+#### ssh免密登录
+```
+    ssh-copy-id username@remote-server
+```
 
-### VUE
-#### 绑定方法传递多个参数
+
+### JS
+##### 链式调用的中断
+```
+.then(_ => throw {})
+```
+#### VUE
+##### 绑定方法传递多个参数
 
 ##### 事件绑定 v-on
 ```
@@ -35,12 +46,6 @@ wget -P ~/.pyenv/cache/ $image/$v/Python-$v.tar.xz
 pyenv install $v
 ```
 
-
-### Linux
-#### ssh免密登录
-```
-    ssh-copy-id username@remote-server
-```
 
 ### Git
 #### 增加一个远端
