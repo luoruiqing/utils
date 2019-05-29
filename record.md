@@ -8,6 +8,11 @@
 
 
 ### JS
+##### 基础类型操作库 [lodash] 简单处理JS的常用操作
+```
+常用方法:
+    isEmpty 判断对象是否为空
+```
 ##### 链式调用的中断
 ```
 .then(_ => throw {})
@@ -46,6 +51,18 @@ wget -P ~/.pyenv/cache/ $image/$v/Python-$v.tar.xz
 pyenv install $v
 ```
 
+#### pandas的to_dict转字典
+```
+import pandas
+# to_dict的orient参数 对应的结构如下
+# records ->              [ {column: value}]     # 标准列表嵌套字典
+# dict    ->              {column : {index : value}}
+# list    ->              {column : [values]} 
+# series  ->              {column : series(values)} 
+# split   ->              {index : [index], columns : [columns], data : [values]} # pandas结构
+# index   ->              {index : {column: value}}
+pandas.read_csv('./test.csv').to_dict(orient='records')
+```
 
 ### Git
 #### 增加一个远端
