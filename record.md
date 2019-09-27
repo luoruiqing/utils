@@ -5,12 +5,17 @@
 ```
 ssh-copy-id username@remote-server
 ```
-
+#### nginx文件夹软链
+```
+ln -s [目标目录] [代理目录] # ln -s /etc/nginx/conf.d/ ./nginx
+```
 
 ### & JS
 ##### 基础类型操作库 [lodash] 简单处理JS的常用操作
 ```
 _.isEmpty 判断对象是否为空
+_.includes(collection, value, [fromIndex=0]) 值是否存在这个集合中 
+_.keyBy(collection, [iteratee=_.identity]) 根据key列表转对象 _.keyBy(array, 'dir') -> {'dir':{}}
 ```
 ##### throw 链式调用的中断 
 ```
@@ -53,6 +58,7 @@ pyenv install $v
 #### 库
 ```
 import bisect # 二分法库
+
 from itertools import product # 压平多层同时遍历 for x, y in product(xl, yl): ...
 import wrapt # 装饰器简化方法
 import pathlib # 路径操作的库
