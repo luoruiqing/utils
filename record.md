@@ -33,12 +33,29 @@ _.keyBy(collection, [iteratee=_.identity]) 根据key列表转对象 _.keyBy(arra
 ```
 <component :event="handler('arg', arguments[0], arguments[1])"/>
 ```
-
-##### $listeners - 代理组件的事件
+#### 代理(直接跳过子组件,代理孙组件事件,多用于再封装)
+##### $listeners - 事件 / $props - 属性
 ```
 <component v-on="$listeners"/>
-```
+<component v-bind="$props"/>
 
+// 经典的例子
+<template>
+  <el-tooltip v-if="$props.content" v-bind="$props" v-on="$listeners">
+    <i :class="icon"></i>
+  </el-tooltip>
+</template>
+<script>
+import { Tooltip } from 'element-ui'
+
+export default {
+  props: {
+    ...Tooltip.props, // 显式声明要合并的props选项
+    icon: { type: String, default: 'el-icon-question' }, // 自定义的选项
+  }
+}
+</script>
+```
 
 ### & Python
 #### Pyenv 安装(一键)
